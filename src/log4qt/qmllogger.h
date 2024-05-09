@@ -1,3 +1,23 @@
+/******************************************************************************
+ *
+ * This file is part of Log4Qt library.
+ *
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
+
 #ifndef LOG4QT_QMLLOGGER_H
 #define LOG4QT_QMLLOGGER_H
 
@@ -32,7 +52,7 @@ namespace Log4Qt
 class LOG4QT_EXPORT QmlLogger : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY(QmlLogger)
+    Q_DISABLE_COPY_MOVE(QmlLogger)
     Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
     Q_PROPERTY(QString context READ context WRITE setContext NOTIFY contextChanged)
     Q_PROPERTY(Level level READ level WRITE setLevel NOTIFY levelChanged)
@@ -60,28 +80,28 @@ public:
     Q_INVOKABLE void info(const QString &message) const;
     Q_INVOKABLE void error(const QString &message) const;
     Q_INVOKABLE void fatal(const QString &message) const;
-    Q_INVOKABLE void log(Level level, const QString &message) const;
+    Q_INVOKABLE void log(QmlLogger::Level level, const QString &message) const;
 
     QString name() const;
     QString context() const;
-    Level level() const;
+    QmlLogger::Level level() const;
 
-public slots:
+public Q_SLOTS:
     void setName(const QString &name);
     void setContext(const QString &context);
-    void setLevel(Level level);
+    void setLevel(QmlLogger::Level level);
 
-signals:
+Q_SIGNALS:
     void nameChanged(const QString &name);
     void contextChanged(const QString &context);
-    void levelChanged(Level level);
+    void levelChanged(QmlLogger::Level level);
 
 private:
     QString mContext;
     mutable QString mName;
     mutable QPointer<Logger> mLogger;
 
-    QString loggerName() const;
+    QString loggename() const;
     Logger *logger() const;
 };
 

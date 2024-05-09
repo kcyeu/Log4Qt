@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        rollingfileappender.cpp
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,62 +25,63 @@
 #include "loggingevent.h"
 
 #include <QFile>
-#include <QTextCodec>
 
 namespace Log4Qt
 {
 
-RollingFileAppender::RollingFileAppender(QObject *pParent) :
-    FileAppender(pParent),
+RollingFileAppender::RollingFileAppender(QObject *parent) :
+    FileAppender(parent),
     mMaxBackupIndex(1),
     mMaximumFileSize(10 * 1024 * 1024)
 {
 }
 
-RollingFileAppender::RollingFileAppender(LayoutSharedPtr pLayout,
-        const QString &rFileName,
-        QObject *pParent) :
-    FileAppender(pLayout, rFileName, pParent),
+RollingFileAppender::RollingFileAppender(const LayoutSharedPtr &layout,
+        const QString &fileName,
+        QObject *parent) :
+    FileAppender(layout, fileName, parent),
     mMaxBackupIndex(1),
     mMaximumFileSize(10 * 1024 * 1024)
 {
 }
 
-RollingFileAppender::RollingFileAppender(LayoutSharedPtr pLayout,
-        const QString &rFileName,
+RollingFileAppender::RollingFileAppender(const LayoutSharedPtr &layout,
+        const QString &fileName,
         bool append,
-        QObject *pParent) :
-    FileAppender(pLayout, rFileName, append, pParent),
+        QObject *parent) :
+    FileAppender(layout, fileName, append, parent),
     mMaxBackupIndex(1),
     mMaximumFileSize(10 * 1024 * 1024)
 {
 }
 
-
-RollingFileAppender::~RollingFileAppender()
-{
-    close();
-}
-
-void RollingFileAppender::setMaxFileSize(const QString &rMaxFileSize)
+void RollingFileAppender::setMaxFileSize(const QString &maxFileSize)
 {
     bool ok;
-    qint64 max_file_size = OptionConverter::toFileSize(rMaxFileSize, &ok);
+    qint64 max_file_size = OptionConverter::toFileSize(maxFileSize, &ok);
     if (ok)
         setMaximumFileSize(max_file_size);
 }
 
-void RollingFileAppender::append(const LoggingEvent &rEvent)
+void RollingFileAppender::append(const LoggingEvent &event)
 {
-    FileAppender::append(rEvent);
+    FileAppender::append(event);
     if (writer()->device()->size() > this->mMaximumFileSize)
         rollOver();
 }
 
+void RollingFileAppender::openFile()
+{
+    // if we do not append, we roll the file to avoid data loss
+    if (appendFile())
+        FileAppender::openFile();
+    else
+        rollOver();
+}
 
 void RollingFileAppender::rollOver()
 {
-    logger()->debug("Rolling over with maxBackupIndex = %1", mMaxBackupIndex);
+    logger()->debug(QStringLiteral("Rolling over with maxBackupIndex = %1"), mMaxBackupIndex);
 
     closeFile();
 
@@ -93,25 +90,27 @@ void RollingFileAppender::rollOver()
     if (f.exists() && !removeFile(f))
         return;
 
-    QString target_file_name;
-    int i;
-    for (i = mMaxBackupIndex - 1; i >= 1; i--)
+    for (int i = mMaxBackupIndex - 1; i >= 1; i--)
     {
         f.setFileName(file() + QLatin1Char('.') + QString::number(i));
         if (f.exists())
         {
-            target_file_name = file() + QLatin1Char('.') + QString::number(i + 1);
+            const QString target_file_name = file() + QLatin1Char('.') + QString::number(i + 1);
             if (!renameFile(f, target_file_name))
                 return;
         }
     }
 
     f.setFileName(file());
-    target_file_name = file() + QLatin1String(".1");
-    if (!renameFile(f, target_file_name))
-        return;
+    // it may not exist on first startup, don't output a warning in this case
+    if (f.exists())
+    {
+        const QString target_file_name = file() + QStringLiteral(".1");
+        if (!renameFile(f, target_file_name))
+            return;
+    }
 
-    openFile();
+    FileAppender::openFile();
 }
 
 } // namespace Log4Qt

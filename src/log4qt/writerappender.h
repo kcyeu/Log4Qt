@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        writerappender.h
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +23,14 @@
 
 #include "appenderskeleton.h"
 
+#if QT_VERSION >= 0x060000
+#include <QStringConverter>
+#endif
+
+#if QT_VERSION < 0x060000
 class QTextCodec;
+#endif
+
 class QTextStream;
 
 namespace Log4Qt
@@ -41,7 +44,7 @@ namespace Log4Qt
  * \note The ownership and lifetime of objects of this class are managed.
  *       See \ref Ownership "Object ownership" for more details.
  */
-class LOG4QT_EXPORT  WriterAppender : public AppenderSkeleton
+class LOG4QT_EXPORT WriterAppender : public AppenderSkeleton
 {
     Q_OBJECT
 
@@ -52,7 +55,11 @@ class LOG4QT_EXPORT  WriterAppender : public AppenderSkeleton
      *
      * \sa encoding(), setEncoding()
      */
+#if QT_VERSION < 0x060000
     Q_PROPERTY(QTextCodec *encoding READ encoding WRITE setEncoding)
+#else
+    Q_PROPERTY(QStringConverter::Encoding encoding READ encoding WRITE setEncoding)
+#endif
 
     /*!
      * The property holds the writer the appender uses.
@@ -71,19 +78,24 @@ class LOG4QT_EXPORT  WriterAppender : public AppenderSkeleton
     Q_PROPERTY(bool immediateFlush READ immediateFlush WRITE setImmediateFlush)
 
 public:
-    WriterAppender(QObject *pParent = nullptr);
-    WriterAppender(LayoutSharedPtr pLayout,
-                   QObject *pParent = nullptr);
-    WriterAppender(LayoutSharedPtr pLayout,
-                   QTextStream *pTextStream,
-                   QObject *pParent = nullptr);
-    virtual ~WriterAppender();
+    WriterAppender(QObject *parent = nullptr);
+    WriterAppender(const LayoutSharedPtr &layout,
+                   QObject *parent = nullptr);
+    WriterAppender(const LayoutSharedPtr &layout,
+                   QTextStream *textStream,
+                   QObject *parent = nullptr);
+    ~WriterAppender() override;
+
 private:
-    Q_DISABLE_COPY(WriterAppender)
+    Q_DISABLE_COPY_MOVE(WriterAppender)
 
 public:
-    virtual bool requiresLayout() const override;
+    bool requiresLayout() const override;
+#if QT_VERSION < 0x060000
     QTextCodec *encoding() const;
+#else
+    QStringConverter::Encoding encoding() const;
+#endif
     bool immediateFlush() const;
     QTextStream *writer() const;
 
@@ -96,15 +108,19 @@ public:
      *
      * \sa encoding(), QTextSream::setCodec(), QTextCodec::codecForLocale()
      */
-    void setEncoding(QTextCodec *pTextCodec);
+#if QT_VERSION < 0x060000
+    void setEncoding(QTextCodec *encoding);
+#else
+    void setEncoding(QStringConverter::Encoding encoding);
+#endif
     void setImmediateFlush(bool immediateFlush);
-    void setWriter(QTextStream *pTextStream);
+    void setWriter(QTextStream *textStream);
 
-    virtual void activateOptions() override;
-    virtual void close() override;
+    void activateOptions() override;
+    void close() override;
 
 protected:
-    virtual void append(const LoggingEvent &rEvent) override;
+    void append(const LoggingEvent &event) override;
 
     /*!
      * Tests if all entry conditions for using append() in this class are
@@ -123,7 +139,7 @@ protected:
      * \sa AppenderSkeleton::doAppend(),
      *     AppenderSkeleton::checkEntryConditions()
      */
-    virtual bool checkEntryConditions() const override;
+    bool checkEntryConditions() const override;
 
     void closeWriter();
 
@@ -132,16 +148,29 @@ protected:
     void writeHeader() const;
 
 private:
-    QTextCodec *mpEncoding;
-    QTextStream *mpWriter;
+#if QT_VERSION < 0x060000
+    QTextCodec *mEncoding;
+#else
+    QStringConverter::Encoding mEncoding;
+#endif
+    QTextStream *mWriter;
     volatile bool mImmediateFlush;
+    void closeInternal();
 };
 
+#if QT_VERSION < 0x060000
 inline QTextCodec *WriterAppender::encoding() const
 {
     QMutexLocker locker(&mObjectGuard);
-    return mpEncoding;
+    return mEncoding;
 }
+#else
+inline QStringConverter::Encoding WriterAppender::encoding() const
+{
+    QMutexLocker locker(&mObjectGuard);
+    return mEncoding;
+}
+#endif
 
 inline bool WriterAppender::immediateFlush() const
 {
@@ -150,7 +179,7 @@ inline bool WriterAppender::immediateFlush() const
 
 inline QTextStream *WriterAppender::writer() const
 {
-    return mpWriter;
+    return mWriter;
 }
 
 inline void WriterAppender::setImmediateFlush(bool immediateFlush)

@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        datetime.cpp
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,33 +25,36 @@
 namespace Log4Qt
 {
 
-QString DateTime::toString(const QString &rFormat) const
-{
-    QString format(rFormat);
+DateTime::DateTime() = default;
 
+DateTime::~DateTime() = default;
+
+DateTime::DateTime(const DateTime &other) = default;
+
+QString DateTime::toString(const QString &format) const
+{
     if (format.isEmpty())
         return QString();
     if (!isValid())
         return QString();
 
-    if (format == QLatin1String("NONE"))
+    if (format == QStringLiteral("NONE"))
         return QString();
-    if (format == QLatin1String("RELATIVE"))
+    if (format == QStringLiteral("RELATIVE"))
         return QString::number(toMSecsSinceEpoch() - InitialisationHelper::startTime());
-    if (format == QLatin1String("ISO8601"))
-        format = QLatin1String("yyyy-MM-dd hh:mm:ss.zzz");
-    if (format == QLatin1String("ABSOLUTE"))
-        format = QLatin1String("HH:mm:ss.zzz");
-    if (format == QLatin1String("DATE"))
-        format = QLatin1String("dd MM yyyy HH:mm:ss.zzzz");
+    if (format == QStringLiteral("ISO8601"))
+        return formatDateTime(QStringLiteral("yyyy-MM-dd hh:mm:ss.zzz"));
+    if (format == QStringLiteral("ABSOLUTE"))
+        return formatDateTime(QStringLiteral("HH:mm:ss.zzz"));
+    if (format == QStringLiteral("DATE"))
+        return formatDateTime(QStringLiteral("dd MM yyyy HH:mm:ss.zzz"));
 
     return formatDateTime(format);
 }
 
-QString DateTime::formatDateTime(const QString &rFormat) const
+QString DateTime::formatDateTime(const QString &format) const
 {
-    return QDateTime::toString(rFormat);
+    return QDateTime::toString(format);
 }
-
 
 } // namespace Log4Qt

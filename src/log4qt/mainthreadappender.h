@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        mainthreadappender.h
- * created:     Febrary 2011
- * author:      Andreas Bacher
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2011 Andreas Bacher
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,18 +37,16 @@ namespace Log4Qt
  * \note The ownership and lifetime of objects of this class are managed.
  *       See \ref Ownership "Object ownership" for more details.
  */
-class LOG4QT_EXPORT  MainThreadAppender : public AppenderSkeleton, public AppenderAttachable
+class LOG4QT_EXPORT MainThreadAppender : public AppenderSkeleton, public AppenderAttachable
 {
     Q_OBJECT
 
 public:
     MainThreadAppender(QObject *parent = nullptr);
-    virtual ~MainThreadAppender();
 
-    virtual bool requiresLayout() const override;
+    bool requiresLayout() const override;
 
-    virtual void activateOptions() override;
-    virtual void close() override;
+    void activateOptions() override;
 
     /*!
      * Tests if all entry conditions for using append() in this class are
@@ -71,13 +65,13 @@ public:
      * \sa AppenderSkeleton::doAppend(),
      *     AppenderSkeleton::checkEntryConditions()
      */
-    virtual bool checkEntryConditions() const override;
+    bool checkEntryConditions() const override;
 
 protected:
-    virtual void append(const LoggingEvent &rEvent) override;
+    void append(const LoggingEvent &event) override;
 
 private:
-    Q_DISABLE_COPY(MainThreadAppender)
+    Q_DISABLE_COPY_MOVE(MainThreadAppender)
 
 };
 

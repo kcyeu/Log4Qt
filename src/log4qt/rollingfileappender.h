@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        rollingfileappender.h
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,13 +29,15 @@ namespace Log4Qt
 /*!
  * \brief The class RollingFileAppender extends FileAppender to backup
  *        the log files when they reach a certain size.
+ *        On application restart the existing log files are rolled
+ *        if appendFile is set to false to avoid data loss.
  *
  * \note All the functions declared in this class are thread-safe.
  *
  * \note The ownership and lifetime of objects of this class are managed.
  *       See \ref Ownership "Object ownership" for more details.
  */
-class  LOG4QT_EXPORT RollingFileAppender : public FileAppender
+class LOG4QT_EXPORT RollingFileAppender : public FileAppender
 {
     Q_OBJECT
 
@@ -69,17 +67,17 @@ class  LOG4QT_EXPORT RollingFileAppender : public FileAppender
     Q_PROPERTY(QString maxFileSize READ maxFileSize WRITE setMaxFileSize)
 
 public:
-    RollingFileAppender(QObject *pParent = nullptr);
-    RollingFileAppender(LayoutSharedPtr pLayout,
-                        const QString &rFileName,
-                        QObject *pParent = nullptr);
-    RollingFileAppender(LayoutSharedPtr pLayout,
-                        const QString &rFileName,
+    RollingFileAppender(QObject *parent = nullptr);
+    RollingFileAppender(const LayoutSharedPtr &layout,
+                        const QString &fileName,
+                        QObject *parent = nullptr);
+    RollingFileAppender(const LayoutSharedPtr &layout,
+                        const QString &fileName,
                         bool append,
-                        QObject *pParent = nullptr);
-    virtual ~RollingFileAppender();
+                        QObject *parent = nullptr);
+
 private:
-    Q_DISABLE_COPY(RollingFileAppender)
+    Q_DISABLE_COPY_MOVE(RollingFileAppender)
 
 public:
     int maxBackupIndex() const;
@@ -87,10 +85,11 @@ public:
     QString maxFileSize() const;
     void setMaxBackupIndex(int maxBackupIndex);
     void setMaximumFileSize(qint64 maximumFileSize);
-    void setMaxFileSize(const QString &rMaxFileSize);
+    void setMaxFileSize(const QString &maxFileSize);
 
 protected:
-    virtual void append(const LoggingEvent &rEvent) override;
+    void append(const LoggingEvent &event) override;
+    void openFile() override;
 
 private:
     void rollOver();
@@ -129,7 +128,6 @@ inline void RollingFileAppender::setMaximumFileSize(qint64 maximumFileSize)
     QMutexLocker locker(&mObjectGuard);
     mMaximumFileSize = maximumFileSize;
 }
-
 
 } // namespace Log4Qt
 

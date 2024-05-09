@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        simplelayout.h
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,28 +33,28 @@ namespace Log4Qt
  * \note The ownership and lifetime of objects of this class are managed.
  *       See \ref Ownership "Object ownership" for more details.
  */
-class LOG4QT_EXPORT  SimpleLayout : public Layout
+class LOG4QT_EXPORT SimpleLayout : public Layout
 {
     Q_OBJECT
     Q_PROPERTY(bool showLevel READ showLevel WRITE setShowLevel)
 
 public:
-    SimpleLayout(QObject *pParent = nullptr);
-    // virtual ~SimpleLayout(); // Use compiler default
+    SimpleLayout(QObject *parent = nullptr);
+
 private:
-    Q_DISABLE_COPY(SimpleLayout)
+    Q_DISABLE_COPY_MOVE(SimpleLayout)
     bool mShowLevel;
 
 public:
     bool showLevel() const;
     void setShowLevel(bool show);
 
-    virtual QString format(const LoggingEvent &rEvent) override;
+    QString format(const LoggingEvent &event) override;
 
 };
 
-inline SimpleLayout::SimpleLayout(QObject *pParent)
-    : Layout(pParent)
+inline SimpleLayout::SimpleLayout(QObject *parent)
+    : Layout(parent)
     , mShowLevel{true}
 {
 }

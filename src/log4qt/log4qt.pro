@@ -1,9 +1,9 @@
-QT += core xml network
+QT += core xml network concurrent
 include(../../build.pri)
 include(../../g++.pri)
 include(log4qt.pri)
 
-CONFIG += c++14 \
+CONFIG += c++17 \
           hide_symbols
 
 contains(DEFINES, LOG4QT_STATIC) {

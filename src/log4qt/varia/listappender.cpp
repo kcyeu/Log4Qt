@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        listappender.cpp
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,27 +23,18 @@
 namespace Log4Qt
 {
 
-ListAppender::ListAppender(QObject *pParent) :
-    AppenderSkeleton(pParent),
+ListAppender::ListAppender(QObject *parent) :
+    AppenderSkeleton(parent),
     mConfiguratorList(false),
-    mList(),
     mMaxCount(0)
 {
 }
 
-
-ListAppender::~ListAppender()
-{
-}
-
-
 QList<LoggingEvent> ListAppender::list() const
 {
     QMutexLocker locker(&mObjectGuard);
-
     return mList;
 }
-
 
 void ListAppender::setMaxCount(int n)
 {
@@ -55,13 +42,12 @@ void ListAppender::setMaxCount(int n)
 
     if (n < 0)
     {
-        logger()->warn("Attempt to set maximum count for appender '%1' to %2. Using zero instead", name(), n);
+        logger()->warn(QStringLiteral("Attempt to set maximum count for appender '%1' to %2. Using zero instead"), name(), n);
         n = 0;
     }
     mMaxCount = n;
     ensureMaxCount();
 }
-
 
 QList<LoggingEvent> ListAppender::clearList()
 {
@@ -72,10 +58,10 @@ QList<LoggingEvent> ListAppender::clearList()
     return result;
 }
 
-void ListAppender::append(const LoggingEvent &rEvent)
+void ListAppender::append(const LoggingEvent &event)
 {
     if ((mMaxCount <= 0) || (mList.size() < mMaxCount))
-        mList << rEvent;
+        mList << event;
 }
 
 void ListAppender::ensureMaxCount()

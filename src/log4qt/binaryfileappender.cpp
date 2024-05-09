@@ -1,3 +1,23 @@
+/******************************************************************************
+ *
+ * This file is part of Log4Qt library.
+ *
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
+
 #include "binaryfileappender.h"
 #include "binaryloggingevent.h"
 
@@ -8,59 +28,59 @@
 #include <QFileInfo>
 
 // if we are in WIN*
-#if defined(__WIN32__) || defined(WIN) || defined(WIN32) || defined(Q_OS_WIN32)
+#ifdef Q_OS_WIN
 #include <windows.h>
 #endif
 
 namespace Log4Qt
 {
 
-BinaryFileAppender::BinaryFileAppender(QObject *pParent) :
-    BinaryWriterAppender(pParent),
+BinaryFileAppender::BinaryFileAppender(QObject *parent) :
+    BinaryWriterAppender(parent),
     mAppendFile(false),
     mBufferedIo(true),
     mFileName(),
-    mpFile(nullptr),
-    mpDataStream(nullptr),
+    mFile(nullptr),
+    mDataStream(nullptr),
     mByteOrder(QDataStream::LittleEndian),
     mFloatingPointPrecision(QDataStream::DoublePrecision),
     mStreamVersion(QDataStream::Qt_5_3)
 {
 }
 
-BinaryFileAppender::BinaryFileAppender(const QString &rFileName, QObject *pParent) :
-    BinaryWriterAppender(pParent),
+BinaryFileAppender::BinaryFileAppender(const QString &fileName, QObject *parent) :
+    BinaryWriterAppender(parent),
     mAppendFile(false),
     mBufferedIo(true),
-    mFileName(rFileName),
-    mpFile(nullptr),
-    mpDataStream(nullptr),
+    mFileName(fileName),
+    mFile(nullptr),
+    mDataStream(nullptr),
     mByteOrder(QDataStream::LittleEndian),
     mFloatingPointPrecision(QDataStream::DoublePrecision),
     mStreamVersion(QDataStream::Qt_5_3)
 {
 }
 
-BinaryFileAppender::BinaryFileAppender(const QString &rFileName, bool append, QObject *pParent) :
-    BinaryWriterAppender(pParent),
+BinaryFileAppender::BinaryFileAppender(const QString &fileName, bool append, QObject *parent) :
+    BinaryWriterAppender(parent),
     mAppendFile(append),
     mBufferedIo(true),
-    mFileName(rFileName),
-    mpFile(nullptr),
-    mpDataStream(nullptr),
+    mFileName(fileName),
+    mFile(nullptr),
+    mDataStream(nullptr),
     mByteOrder(QDataStream::LittleEndian),
     mFloatingPointPrecision(QDataStream::DoublePrecision),
     mStreamVersion(QDataStream::Qt_5_3)
 {
 }
 
-BinaryFileAppender::BinaryFileAppender(const QString &rFileName, bool append, bool buffered, QObject *pParent) :
-    BinaryWriterAppender(pParent),
+BinaryFileAppender::BinaryFileAppender(const QString &fileName, bool append, bool buffered, QObject *parent) :
+    BinaryWriterAppender(parent),
     mAppendFile(append),
     mBufferedIo(buffered),
-    mFileName(rFileName),
-    mpFile(nullptr),
-    mpDataStream(nullptr),
+    mFileName(fileName),
+    mFile(nullptr),
+    mDataStream(nullptr),
     mByteOrder(QDataStream::LittleEndian),
     mFloatingPointPrecision(QDataStream::DoublePrecision),
     mStreamVersion(QDataStream::Qt_5_3)
@@ -69,7 +89,7 @@ BinaryFileAppender::BinaryFileAppender(const QString &rFileName, bool append, bo
 
 BinaryFileAppender::~BinaryFileAppender()
 {
-    close();
+    closeInternal();
 }
 
 void BinaryFileAppender::activateOptions()
@@ -91,18 +111,23 @@ void BinaryFileAppender::activateOptions()
 
 void BinaryFileAppender::close()
 {
+    closeInternal();
+    BinaryWriterAppender::close();
+}
+
+void BinaryFileAppender::closeInternal()
+{
     QMutexLocker locker(&mObjectGuard);
 
     if (isClosed())
         return;
 
-    BinaryWriterAppender::close();
     closeFile();
 }
 
 bool BinaryFileAppender::checkEntryConditions() const
 {
-    if (!mpFile || !mpDataStream)
+    if ((mFile == nullptr) || (mDataStream == nullptr))
     {
         LogError e = LOG4QT_QCLASS_ERROR(QT_TR_NOOP("Use of appender '%1' without open file"),
                                          APPENDER_NO_OPEN_FILE_ERROR);
@@ -117,59 +142,59 @@ bool BinaryFileAppender::checkEntryConditions() const
 
 void BinaryFileAppender::closeFile()
 {
-    if (mpFile)
-        logger()->debug("Closing file '%1' for appender '%2'", mpFile->fileName(), name());
+    if (mFile != nullptr)
+        logger()->debug(QStringLiteral("Closing file '%1' for appender '%2'"), mFile->fileName(), name());
 
     setWriter(nullptr);
-    delete mpDataStream;
-    mpDataStream = nullptr;
-    delete mpFile;
-    mpFile = nullptr;
+    delete mDataStream;
+    mDataStream = nullptr;
+    delete mFile;
+    mFile = nullptr;
 }
 
 bool BinaryFileAppender::handleIoErrors() const
 {
-    if (mpFile->error() == QFile::NoError)
+    if (mFile->error() == QFile::NoError)
         return false;
 
     LogError e = LOG4QT_QCLASS_ERROR(QT_TR_NOOP("Unable to write to file '%1' for appender '%2'"),
                                      APPENDER_WRITING_FILE_ERROR);
     e << mFileName << name();
-    e.addCausingError(LogError(mpFile->errorString(), mpFile->error()));
+    e.addCausingError(LogError(mFile->errorString(), mFile->error()));
     logger()->error(e);
     return true;
 }
 
 void BinaryFileAppender::createDataStream()
 {
-    mpDataStream = new QDataStream(mpFile);
-    mpDataStream->setByteOrder(mByteOrder);
-    mpDataStream->setFloatingPointPrecision(mFloatingPointPrecision);
-    mpDataStream->setVersion(mStreamVersion);
+    mDataStream = new QDataStream(mFile);
+    mDataStream->setByteOrder(mByteOrder);
+    mDataStream->setFloatingPointPrecision(mFloatingPointPrecision);
+    mDataStream->setVersion(mStreamVersion);
 }
 
 void BinaryFileAppender::openFile()
 {
-    Q_ASSERT_X(mpFile == nullptr && mpDataStream == nullptr, "BinaryFileAppender::openFile()", "Opening file without closing previous file");
+    Q_ASSERT_X(mFile == nullptr && mDataStream == nullptr, "BinaryFileAppender::openFile()", "Opening file without closing previous file");
 
     QFileInfo file_info(mFileName);
     QDir parent_dir = file_info.dir();
     if (!parent_dir.exists())
     {
-        logger()->trace("Creating missing parent directory for file %1", mFileName);
+        logger()->trace(QStringLiteral("Creating missing parent directory for file %1"), mFileName);
         QString name = parent_dir.dirName();
         parent_dir.cdUp();
         parent_dir.mkdir(name);
     }
 
-#if defined(__WIN32__) || defined(WIN) || defined(WIN32) || defined(Q_OS_WIN32)
+#ifdef Q_OS_WIN
     // Let windows resolve any environment variables included in the file path
     wchar_t buffer[MAX_PATH];
     if (ExpandEnvironmentStringsW(mFileName.toStdWString().c_str(), buffer, MAX_PATH))
         mFileName = QString::fromWCharArray(buffer);
 #endif
 
-    mpFile = new QFile(mFileName);
+    mFile = new QFile(mFileName);
     QFile::OpenMode mode = QIODevice::WriteOnly | QIODevice::Text;
     if (mAppendFile)
         mode |= QIODevice::Append;
@@ -177,45 +202,45 @@ void BinaryFileAppender::openFile()
         mode |= QIODevice::Truncate;
     if (!mBufferedIo)
         mode |= QIODevice::Unbuffered;
-    if (!mpFile->open(mode))
+    if (!mFile->open(mode))
     {
         LogError e = LOG4QT_QCLASS_ERROR(QT_TR_NOOP("Unable to open file '%1' for appender '%2'"),
                                          APPENDER_OPENING_FILE_ERROR);
         e << mFileName << name();
-        e.addCausingError(LogError(mpFile->errorString(), mpFile->error()));
+        e.addCausingError(LogError(mFile->errorString(), mFile->error()));
         logger()->error(e);
         return;
     }
 
     createDataStream();
-    setWriter(mpDataStream);
-    logger()->debug("Opened file '%1' for appender '%2'", mpFile->fileName(), name());
+    setWriter(mDataStream);
+    logger()->debug(QStringLiteral("Opened file '%1' for appender '%2'"), mFile->fileName(), name());
 }
 
-bool BinaryFileAppender::removeFile(QFile &rFile) const
+bool BinaryFileAppender::removeFile(QFile &file) const
 {
-    if (rFile.remove())
+    if (file.remove())
         return true;
 
     LogError e = LOG4QT_QCLASS_ERROR(QT_TR_NOOP("Unable to remove file '%1' for appender '%2'"),
                                      APPENDER_REMOVE_FILE_ERROR);
-    e << rFile.fileName() << name();
-    e.addCausingError(LogError(rFile.errorString(), rFile.error()));
+    e << file.fileName() << name();
+    e.addCausingError(LogError(file.errorString(), file.error()));
     logger()->error(e);
     return false;
 }
 
-bool BinaryFileAppender::renameFile(QFile &rFile,
-                                    const QString &rFileName) const
+bool BinaryFileAppender::renameFile(QFile &file,
+                                    const QString &fileName) const
 {
-    logger()->debug("Renaming file '%1' to '%2'", rFile.fileName(), rFileName);
-    if (rFile.rename(rFileName))
+    logger()->debug(QStringLiteral("Renaming file '%1' to '%2'"), file.fileName(), fileName);
+    if (file.rename(fileName))
         return true;
 
     LogError e = LOG4QT_QCLASS_ERROR(QT_TR_NOOP("Unable to rename file '%1' to '%2' for appender '%3'"),
                                      APPENDER_RENAMING_FILE_ERROR);
-    e << rFile.fileName() << rFileName << name();
-    e.addCausingError(LogError(rFile.errorString(), rFile.error()));
+    e << file.fileName() << fileName << name();
+    e.addCausingError(LogError(file.errorString(), file.error()));
     logger()->error(e);
     return false;
 }

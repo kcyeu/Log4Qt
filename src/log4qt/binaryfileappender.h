@@ -1,3 +1,23 @@
+/******************************************************************************
+ *
+ * This file is part of Log4Qt library.
+ *
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
+
 #ifndef LOG4QT_BINARYFILEAPPENDER_H
 #define LOG4QT_BINARYFILEAPPENDER_H
 
@@ -21,26 +41,25 @@ class LOG4QT_EXPORT BinaryFileAppender : public BinaryWriterAppender
     Q_PROPERTY(QDataStream::Version streamVersion READ streamVersion WRITE setStreamVersion)
 
 public:
-    explicit BinaryFileAppender(QObject *pParent = nullptr);
-    BinaryFileAppender(const QString &rFileName,
-                       QObject *pParent = nullptr);
-    BinaryFileAppender(const QString &rFileName,
+    explicit BinaryFileAppender(QObject *parent = nullptr);
+    BinaryFileAppender(const QString &fileName,
+                       QObject *parent = nullptr);
+    BinaryFileAppender(const QString &fileName,
                        bool append,
-                       QObject *pParent = nullptr);
-    BinaryFileAppender(const QString &rFileName,
+                       QObject *parent = nullptr);
+    BinaryFileAppender(const QString &fileName,
                        bool append,
                        bool buffered,
-                       QObject *pParent = nullptr);
+                       QObject *parent = nullptr);
     virtual ~BinaryFileAppender();
 
     // properties
-
     bool appendFile() const;
     void setAppendFile(bool append);
     bool bufferedIo() const;
     void setBufferedIo(bool buffered);
     QString file() const;
-    void setFile(const QString &rFileName);
+    void setFile(const QString &fileName);
     QDataStream::ByteOrder byteOrder() const;
     void setByteOrder(QDataStream::ByteOrder byteorder);
     QDataStream::FloatingPointPrecision floatingPointPrecision() const;
@@ -49,31 +68,32 @@ public:
     void setStreamVersion(QDataStream::Version version);
 
     // public members
-    virtual void activateOptions() override;
-    virtual void close() override;
+    void activateOptions() override;
+    void close() override;
 
 protected:
-    virtual bool checkEntryConditions() const override;
-    virtual bool handleIoErrors() const override;
+    bool checkEntryConditions() const override;
+    bool handleIoErrors() const override;
 
     void closeFile();
     void openFile();
-    bool removeFile(QFile &rFile) const;
-    bool renameFile(QFile &rFile, const QString &rFileName) const;
+    bool removeFile(QFile &file) const;
+    bool renameFile(QFile &file, const QString &fileName) const;
 
 private:
-    BinaryFileAppender(const BinaryFileAppender &rOther); // Not implemented
-    BinaryFileAppender &operator=(const BinaryFileAppender &rOther); // Not implemented
+    BinaryFileAppender(const BinaryFileAppender &other); // Not implemented
+    BinaryFileAppender &operator=(const BinaryFileAppender &other); // Not implemented
     void createDataStream();
 
     volatile bool mAppendFile;
     volatile bool mBufferedIo;
     QString mFileName;
-    QFile *mpFile;
-    QDataStream *mpDataStream;
+    QFile *mFile;
+    QDataStream *mDataStream;
     QDataStream::ByteOrder mByteOrder;
     QDataStream::FloatingPointPrecision mFloatingPointPrecision;
     QDataStream::Version mStreamVersion;
+    void closeInternal();
 };
 
 inline bool BinaryFileAppender::appendFile() const
@@ -102,10 +122,10 @@ inline void BinaryFileAppender::setBufferedIo(bool buffered)
     mBufferedIo = buffered;
 }
 
-inline void BinaryFileAppender::setFile(const QString &rFileName)
+inline void BinaryFileAppender::setFile(const QString &fileName)
 {
     QMutexLocker locker(&mObjectGuard);
-    mFileName = rFileName;
+    mFileName = fileName;
 }
 
 inline QDataStream::ByteOrder BinaryFileAppender::byteOrder() const

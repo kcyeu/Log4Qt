@@ -1,6 +1,6 @@
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-set(log4qt_SRCS
+set(log4qt_SOURCES
     appender.cpp
     appenderskeleton.cpp
     asyncappender.cpp
@@ -12,7 +12,6 @@ set(log4qt_SRCS
     binarylogstream.cpp
     binarytotextlayout.cpp
     binarywriterappender.cpp
-    colorconsoleappender.cpp
     consoleappender.cpp
     dailyfileappender.cpp
     dailyrollingfileappender.cpp
@@ -62,7 +61,7 @@ set(log4qt_SRCS
     writerappender.cpp
     xmllayout.cpp
 )
-set(log4qt_HDRS
+set(log4qt_HEADERS
     appender.h
     appenderskeleton.h
     asyncappender.h
@@ -74,7 +73,6 @@ set(log4qt_HDRS
     binarylogstream.h
     binarytotextlayout.h
     binarywriterappender.h
-    colorconsoleappender.h
     consoleappender.h
     dailyfileappender.h
     dailyrollingfileappender.h
@@ -82,6 +80,7 @@ set(log4qt_HDRS
     hierarchy.h
     layout.h
     level.h
+    log4qtdefs.h
     log4qt.h
     log4qtshared.h
     log4qtsharedptr.h
@@ -106,7 +105,7 @@ set(log4qt_HDRS
     writerappender.h
     xmllayout.h
 )
-set(log4qt_HDRS_helpers
+set(log4qt_HEADERS_helpers
     helpers/appenderattachable.h
     helpers/binaryclasslogger.h
     helpers/classlogger.h
@@ -120,10 +119,10 @@ set(log4qt_HDRS_helpers
     helpers/patternformatter.h
     helpers/properties.h
 )
-set(log4qt_HDRS_spi
+set(log4qt_HEADERS_spi
     spi/filter.h
 )
-set(log4qt_HDRS_varia
+set(log4qt_HEADERS_varia
     varia/binaryeventfilter.h
     varia/debugappender.h
     varia/denyallfilter.h
@@ -134,26 +133,27 @@ set(log4qt_HDRS_varia
     varia/stringmatchfilter.h
 )
 if(WIN32)
-    list(APPEND log4qt_SRCS
-        wdcappender.cpp
+    list(APPEND log4qt_SOURCES
+         wdcappender.cpp
+         colorconsoleappender.cpp
     )
-    list(APPEND log4qt_HDRS
-        wdcappender.h
+    list(APPEND log4qt_HEADERS
+         wdcappender.h
+         colorconsoleappender.h
     )
 endif()
 
-#
-# build lib shared/static
-#
-set(_shared_static SHARED)
-if(BUILD_STATIC_LOG4CXX_LIB)
-  set(_shared_static STATIC)
-endif()
-add_library(log4qt ${_shared_static} ${log4qt_SRCS} ${log4qt_HDRS} ${log4qt_HDRS_helpers} ${log4qt_HDRS_spi} ${log4qt_HDRS_varia})
+add_library(log4qt ${log4qt_SOURCES} ${log4qt_HEADERS} ${log4qt_HEADERS_helpers} ${log4qt_HEADERS_spi} ${log4qt_HEADERS_varia})
+
 target_link_libraries(log4qt
     PUBLIC
-        Qt5::Core
+        Qt${QT_VERSION_MAJOR}::Core
+        Qt${QT_VERSION_MAJOR}::Concurrent
 )
+
+target_include_directories(log4qt PUBLIC
+    $<BUILD_INTERFACE:${LOG4QT_BUILD_INCLUDE_DIR}>
+    $<INSTALL_INTERFACE:include>)
 #
 # add databaseappender if database logging support was enabled
 #
@@ -165,22 +165,20 @@ if(BUILD_WITH_DB_LOGGING)
             databaseappender.h
             databaselayout.h
     )
-    # append to log4qt_HDRS or proper install
-    list(APPEND log4qt_HDRS
-        databaseappender.h
-        databaselayout.h
+    # append to log4qt_HEADERS or proper install
+    list(APPEND log4qt_HEADERS
+         databaseappender.h
+         databaselayout.h
     )
-    target_link_libraries(log4qt
-        PRIVATE
-            Qt5::Sql
-    )
+
+    target_link_libraries(log4qt PRIVATE Qt${QT_VERSION_MAJOR}::Sql)
     target_include_directories(log4qt
           PUBLIC
-              $<TARGET_PROPERTY:Qt5::Sql,INTERFACE_INCLUDE_DIRECTORIES>
+              $<TARGET_PROPERTY:Qt::Sql,INTERFACE_INCLUDE_DIRECTORIES>
     )
-    message(STATUS "Enabling database logging support")
+    message(STATUS "Log4Qt: Enabling database logging support")
 else()
-    message(STATUS "Disabling database logging support - disabled by cmake option")
+    message(STATUS "Log4Qt: Disabling database logging support - disabled by cmake option")
 endif()
 
 #
@@ -192,24 +190,21 @@ if(BUILD_WITH_TELNET_LOGGING)
             telnetappender.cpp
             telnetappender.h
     )
-    # append to log4qt_HDRS or proper install
-    list(APPEND log4qt_HDRS
-        telnetappender.h
+    # append to log4qt_HEADERS or proper install
+    list(APPEND log4qt_HEADERS
+         telnetappender.h
     )
-    target_link_libraries(log4qt
-        PRIVATE
-            Qt5::Network
-    )
+    target_link_libraries(log4qt PRIVATE Qt${QT_VERSION_MAJOR}::Network)
     target_include_directories(log4qt
           PUBLIC
-              $<TARGET_PROPERTY:Qt5::Network,INTERFACE_INCLUDE_DIRECTORIES>
+              $<TARGET_PROPERTY:Qt::Network,INTERFACE_INCLUDE_DIRECTORIES>
     )
-    message(STATUS "Enabling telnet logging support")
+    message(STATUS "Log4Qt: Enabling telnet logging support")
 else()
-    message(STATUS "Disabling telnet logging support - disabled by cmake option")
+    message(STATUS "Log4Qt: Disabling telnet logging support - disabled by cmake option")
 endif()
 
-if(BUILD_STATIC_LOG4CXX_LIB)
+if(NOT BUILD_SHARED_LIBS)
     # LOG4QT_STATIC must also be set when linking against the lib
     target_compile_definitions(log4qt
         PUBLIC
@@ -228,12 +223,14 @@ set_target_properties(log4qt PROPERTIES SOVERSION ${Log4Qt_VERSION_MAJOR}.${Log4
 # Install the whole stuff
 #
 install(TARGETS log4qt EXPORT log4qt_targets
+                       COMPONENT Library
                        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
                        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
                        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
                        INCLUDES DESTINATION include
                        )
-install(FILES ${log4qt_HDRS}         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/log4qt)
-install(FILES ${log4qt_HDRS_helpers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/log4qt/helpers)
-install(FILES ${log4qt_HDRS_spi}     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/log4qt/spi)
-install(FILES ${log4qt_HDRS_varia}   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/log4qt/varia)
+
+install(FILES ${log4qt_HEADERS}         COMPONENT Devel DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/log4qt)
+install(FILES ${log4qt_HEADERS_helpers} COMPONENT Devel DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/log4qt/helpers)
+install(FILES ${log4qt_HEADERS_spi}     COMPONENT Devel DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/log4qt/spi)
+install(FILES ${log4qt_HEADERS_varia}   COMPONENT Devel DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/log4qt/varia)

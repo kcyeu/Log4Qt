@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        stringmatchfilter.h
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +21,7 @@
 #ifndef LOG4QT_STRINGMATCHFILTER_H
 #define LOG4QT_STRINGMATCHFILTER_H
 
-#include <log4qt/spi/filter.h>
+#include "log4qt/spi/filter.h"
 
 namespace Log4Qt
 {
@@ -37,7 +33,7 @@ namespace Log4Qt
  * \note The ownership and lifetime of objects of this class are managed.
  *       See  \ref Ownership "Object ownership" for more details.
  */
-class  LOG4QT_EXPORT StringMatchFilter : public Filter
+class LOG4QT_EXPORT StringMatchFilter : public Filter
 {
     Q_OBJECT
 
@@ -58,18 +54,19 @@ class  LOG4QT_EXPORT StringMatchFilter : public Filter
     Q_PROPERTY(QString stringToMatch READ stringToMatch WRITE setStringToMatch)
 
 public:
-    StringMatchFilter(QObject *pParent = nullptr);
+    StringMatchFilter(QObject *parent = nullptr);
 
     bool acceptOnMatch() const;
     QString stringToMatch() const;
     void setAcceptOnMatch(bool accept);
-    void setStringToMatch(const QString &rString);
+    void setStringToMatch(const QString &string, Qt::CaseSensitivity cs = Qt::CaseSensitive);
 
-    virtual Decision decide(const LoggingEvent &rEvent) const override;
+    Decision decide(const LoggingEvent &event) const override;
 
 private:
     bool mAcceptOnMatch;
     QString mStringToMatch;
+    Qt::CaseSensitivity mCaseSensitivity;
 };
 
 inline bool StringMatchFilter::acceptOnMatch() const
@@ -87,9 +84,10 @@ inline void StringMatchFilter::setAcceptOnMatch(bool accept)
     mAcceptOnMatch = accept;
 }
 
-inline void StringMatchFilter::setStringToMatch(const QString &rString)
+inline void StringMatchFilter::setStringToMatch(const QString &string, Qt::CaseSensitivity cs)
 {
-    mStringToMatch = rString;
+    mStringToMatch = string;
+    mCaseSensitivity = cs;
 }
 
 } // namespace Log4Qt

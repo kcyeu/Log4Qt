@@ -2,12 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 ----
-## [v1.5.0] - ????
+## [v1.6.0] - ??
 ### Improvements
--
+
+- Support for Qt6
+- Minimum required Qt version is 5.12
+- Add case sensitivity option in Stringmatchfilter
+- cmake: replace BUILD_STATIC_LOG4CXX_LIB with standard BUILD_SHARED_LIBS
 
 ### Fixed
-- Minimum required Qt version is 5.6
+- Fixes for Qt6.7
+- Replace deprecated Qt 5.15 stuff
+
+## [v1.5.1] - 14.02.2020
+### Improvements
+- Automatically delete files written by DailyFileAppender after a configurable period of time.
+
+## [v1.5.0] - 25.06.2018
+### Improvements
+- RollingFileAppender: Changed the behavior on application restart and if
+                       appendFile is set to false to avoid data loss. The
+                       existing log files are rolled instead of overwritten.
+                       This behavior is different to the log4/log4cpp implementation.
+- Modernize c++ and qt usage wit clang-tidy and clazy
+
+### Fixed
+- Fixed "DATE" format string, it will be formatted as MMM YYYY HH:mm:ss.zzz
+- Minimum required Qt version is 5.7
+- Move color console appender to windows only (is only implemented for windows),
+  unified windows os preprocessor switches
 
 ## [v1.4.2] - 2017-09-06
 ### Improvements

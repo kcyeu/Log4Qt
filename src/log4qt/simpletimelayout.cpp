@@ -1,13 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        simpletimelayout.cpp
- * created:     March 2010
- * author:      Filonenko Michael
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2010 Filonenko Michael
- *
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,13 +27,13 @@
 namespace Log4Qt
 {
 
-QString SimpleTimeLayout::format(const LoggingEvent &rEvent)
+QString SimpleTimeLayout::format(const LoggingEvent &event)
 {
-    return DateTime::fromMSecsSinceEpoch(rEvent.timeStamp()).toString("dd.MM.yyyy hh:mm")
-           + QLatin1String("[") + rEvent.threadName() + QLatin1String("]")
-           + QLatin1String(" ") + rEvent.level().toString()
-           + QLatin1String(" ") + rEvent.loggerName()
-           + QLatin1String(" - ") + rEvent.message() + Layout::endOfLine();
+    return DateTime::fromMSecsSinceEpoch(event.timeStamp()).toString(QStringLiteral("dd.MM.yyyy hh:mm"))
+           + QStringLiteral("[") + event.threadName() + QStringLiteral("]")
+           + QStringLiteral(" ") + event.level().toString()
+           + QStringLiteral(" ") + event.loggename()
+           + QStringLiteral(" - ") + event.message() + Layout::endOfLine();
 }
 
 

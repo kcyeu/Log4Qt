@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:
- * file:        consoleappender.h
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +36,7 @@ namespace Log4Qt
  * \note The ownership and lifetime of objects of this class are managed.
  *       See \ref Ownership "Object ownership" for more details.
  */
-class LOG4QT_EXPORT  ConsoleAppender : public WriterAppender
+class LOG4QT_EXPORT ConsoleAppender : public WriterAppender
 {
     Q_OBJECT
 
@@ -69,29 +65,29 @@ public:
     Q_ENUM(Target)
 
 
-    ConsoleAppender(QObject *pParent = nullptr);
-    ConsoleAppender(LayoutSharedPtr pLayout,
-                    QObject *pParent = nullptr);
-    ConsoleAppender(LayoutSharedPtr pLayout,
-                    const QString &rTarget,
-                    QObject *pParent = nullptr);
+    ConsoleAppender(QObject *parent = nullptr);
+    ConsoleAppender(const LayoutSharedPtr &pLayout,
+                    QObject *parent = nullptr);
+    ConsoleAppender(const LayoutSharedPtr &pLayout,
+                    const QString &target,
+                    QObject *parent = nullptr);
 
     /*!
      * Creates a ConsoleAppender with the layout \a pLayout, the target
      * value specified by the \a target constant and the parent
-     * \a pParent.
+     * \a parent.
      */
-    ConsoleAppender(LayoutSharedPtr pLayout,
+    ConsoleAppender(const LayoutSharedPtr &pLayout,
                     Target target,
-                    QObject *pParent = nullptr);
+                    QObject *parent = nullptr);
 
-    virtual ~ConsoleAppender();
+    ~ConsoleAppender() override;
 private:
-    Q_DISABLE_COPY(ConsoleAppender)
+    Q_DISABLE_COPY_MOVE(ConsoleAppender)
 
 public:
     QString target() const;
-    void setTarget(const QString &rTarget);
+    void setTarget(const QString &target);
 
     /*!
      * Sets the target to the value specified by the \a target constant.
@@ -106,7 +102,8 @@ protected:
 
 private:
     volatile Target mTarget;
-    QTextStream *mpTextStream;
+    QTextStream *mtextStream;
+    void closeInternal();
 };
 
 inline void ConsoleAppender::setTarget(Target target)

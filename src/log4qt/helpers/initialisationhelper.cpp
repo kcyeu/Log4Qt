@@ -1,17 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        initialisationhelper.cpp
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * changes      Feb 2009, Martin Heinrich
- *              - Fixed VS 2008 unreferenced formal parameter warning by using
- *                Q_UNUSED in operator<<.
- *
- *
- * Copyright 2007 - 2009 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,8 +37,7 @@ namespace Log4Qt
 {
 
 InitialisationHelper::InitialisationHelper() :
-    mStartTime(QDateTime::currentDateTime().toMSecsSinceEpoch()),
-    mEnvironmentSettings()
+    mStartTime(QDateTime::currentDateTime().toMSecsSinceEpoch())
 {
     doRegisterTypes();
     doInitialiseEnvironmentSettings();
@@ -66,16 +56,16 @@ void InitialisationHelper::doInitialiseEnvironmentSettings()
     // object has been created?
 
     QStringList setting_keys;
-    setting_keys << QLatin1String("Debug");
-    setting_keys << QLatin1String("DefaultInitOverride");
-    setting_keys << QLatin1String("Configuration");
+    setting_keys << QStringLiteral("Debug");
+    setting_keys << QStringLiteral("DefaultInitOverride");
+    setting_keys << QStringLiteral("Configuration");
 
     QHash<QString, QString> env_keys;
-    for (const auto &entry : setting_keys)
-        env_keys.insert(QString::fromLatin1("log4qt_").append(entry).toUpper(), entry);
+    for (const auto &entry : qAsConst(setting_keys))
+        env_keys.insert(QStringLiteral("log4qt_").append(entry).toUpper(), entry);
 
     QStringList sys_env = QProcess::systemEnvironment();
-    for (const auto &entry : sys_env)
+    for (const auto &entry : qAsConst(sys_env))
     {
         int i = entry.indexOf(QLatin1Char('='));
         if (i == -1)
@@ -87,7 +77,6 @@ void InitialisationHelper::doInitialiseEnvironmentSettings()
     }
 }
 
-
 void InitialisationHelper::doRegisterTypes()
 {
     qRegisterMetaType<Log4Qt::LogError>("Log4Qt::LogError");
@@ -95,28 +84,29 @@ void InitialisationHelper::doRegisterTypes()
     qRegisterMetaType<Log4Qt::LoggingEvent>("Log4Qt::LoggingEvent");
 
 #ifndef QT_NO_DATASTREAM
+#if QT_VERSION < 0x060000
     qRegisterMetaTypeStreamOperators<Log4Qt::LogError>("Log4Qt::LogError");
     qRegisterMetaTypeStreamOperators<Log4Qt::Level>("Log4Qt::Level");
     qRegisterMetaTypeStreamOperators<LoggingEvent>("Log4Qt::LoggingEvent");
 #endif
+#endif
+
 }
 
-QString InitialisationHelper::doSetting(const QString &rKey,
-                                        const QString &rDefault) const
+QString InitialisationHelper::doSetting(const QString &key,
+                                        const QString &defaultValue) const
 {
-    if (mEnvironmentSettings.contains(rKey))
-        return mEnvironmentSettings.value(rKey);
+    if (mEnvironmentSettings.contains(key))
+        return mEnvironmentSettings.value(key);
 
-    if (QCoreApplication::instance())
+    if (QCoreApplication::instance() != nullptr)
     {
         QSettings s;
-        s.beginGroup(QLatin1String("Log4Qt"));
-        return s.value(rKey, rDefault).toString().trimmed();
+        s.beginGroup(QStringLiteral("Log4Qt"));
+        return s.value(key, defaultValue).toString().trimmed();
     }
-    else
-        return rDefault;
+    return defaultValue;
 }
-
 
 bool InitialisationHelper::staticInitialisation()
 {
@@ -124,7 +114,6 @@ bool InitialisationHelper::staticInitialisation()
     return true;
 }
 
-
-bool InitialisationHelper::msStaticInitialisation = staticInitialisation();
+bool InitialisationHelper::mStaticInitialisation = staticInitialisation();
 
 } // namespace Log4Qt

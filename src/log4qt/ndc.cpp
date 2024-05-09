@@ -1,17 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        ndc.cpp
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * changes      Feb 2009, Martin Heinrich
- *              - Fixed VS 2008 unreferenced formal parameter warning by using
- *                Q_UNUSED in operator<<.
- *
- *
- * Copyright 2007 - 2009 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- *****************************************************************************/
+ ******************************************************************************/
 
 #include "ndc.h"
 
@@ -65,7 +56,7 @@ QString NDC::pop()
 {
     if (!instance()->mStack.hasLocalData() || instance()->mStack.localData()->isEmpty())
     {
-        logger()->warn("Requesting pop from empty NDC stack");
+        logger()->warn(QStringLiteral("Requesting pop from empty NDC stack"));
         return QString();
     }
 
@@ -73,12 +64,12 @@ QString NDC::pop()
 }
 
 
-void NDC::push(const QString &rMessage)
+void NDC::push(const QString &message)
 {
     if (!instance()->mStack.hasLocalData())
         instance()->mStack.setLocalData(new QStack<QString>);
 
-    instance()->mStack.localData()->push(rMessage);
+    instance()->mStack.localData()->push(message);
 }
 
 

@@ -1,17 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        patternformatter.cpp
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * changes      Feb 2009, Martin Heinrich
- *              - Fixed VS 2008 unreferenced formal parameter warning by using
- *                Q_UNUSED in LiteralPatternConverter::convert.
- *
- *
- * Copyright 2007 - 2009 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +34,6 @@
 namespace Log4Qt
 {
 
-
 /*!
  * \brief The class FormattingInfo stores the formatting modifier for a
  * pattern converter.
@@ -67,7 +57,6 @@ public:
     bool mLeftAligned;
 };
 
-
 /*!
  * \brief The class PatternConverter is the abstract base class for all
  * pattern converters.
@@ -81,19 +70,19 @@ public:
 class PatternConverter
 {
 public:
-    PatternConverter(const FormattingInfo &rFormattingInfo = FormattingInfo()) :
-        mFormattingInfo(rFormattingInfo)
-    {};
-    virtual ~PatternConverter()
-    {};
+    PatternConverter(Log4Qt::FormattingInfo formattingInfo = FormattingInfo()) :
+        mFormattingInfo(formattingInfo)
+    {}
+    virtual ~PatternConverter() = default;
+
 private:
-    Q_DISABLE_COPY(PatternConverter)
+    Q_DISABLE_COPY_MOVE(PatternConverter)
 
 public:
-    void format(QString &rFormat, const LoggingEvent &rLoggingEvent) const;
+    void format(QString &format, const LoggingEvent &loggingEvent) const;
 
 protected:
-    virtual QString convert(const LoggingEvent &rLoggingEvent) const = 0;
+    virtual QString convert(const LoggingEvent &loggingEvent) const = 0;
 
 protected:
     FormattingInfo mFormattingInfo;
@@ -129,17 +118,17 @@ public:
     };
 
 public:
-    BasicPatternConverter(const FormattingInfo &rFormattingInfo,
+    BasicPatternConverter(Log4Qt::FormattingInfo formattingInfo,
                           Type type) :
-        PatternConverter(rFormattingInfo),
+        PatternConverter(formattingInfo),
         mType(type)
-    {};
-    // virtual ~BasicPatternConverter(); // Use compiler default
+    {}
+
 private:
-    Q_DISABLE_COPY(BasicPatternConverter)
+    Q_DISABLE_COPY_MOVE(BasicPatternConverter)
 
 protected:
-    QString convert(const LoggingEvent &rLoggingEvent) const override;
+    QString convert(const LoggingEvent &loggingEvent) const override;
 
 private:
     Type mType;
@@ -160,17 +149,17 @@ private:
 class DatePatternConverter : public PatternConverter
 {
 public:
-    DatePatternConverter(const FormattingInfo &rFormattingInfo,
-                         const QString &rFormat) :
-        PatternConverter(rFormattingInfo),
-        mFormat(rFormat)
-    {};
+    DatePatternConverter(Log4Qt::FormattingInfo formattingInfo,
+                         const QString &format) :
+        PatternConverter(formattingInfo),
+        mFormat(format)
+    {}
 
 private:
-    Q_DISABLE_COPY(DatePatternConverter)
+    Q_DISABLE_COPY_MOVE(DatePatternConverter)
 
 protected:
-    QString convert(const LoggingEvent &rLoggingEvent) const override;
+    QString convert(const LoggingEvent &loggingEvent) const override;
 
 private:
     QString mFormat;
@@ -190,16 +179,15 @@ private:
 class LiteralPatternConverter : public PatternConverter
 {
 public:
-    LiteralPatternConverter(const QString &rLiteral) :
-        PatternConverter(),
-        mLiteral(rLiteral)
-    {};
+    LiteralPatternConverter(const QString &literal) :
+        mLiteral(literal)
+    {}
 
 private:
-    Q_DISABLE_COPY(LiteralPatternConverter)
+    Q_DISABLE_COPY_MOVE(LiteralPatternConverter)
 
 protected:
-    QString convert(const LoggingEvent &rLoggingEvent) const override;
+    QString convert(const LoggingEvent &loggingEvent) const override;
 
 private:
     QString mLiteral;
@@ -207,30 +195,30 @@ private:
 
 
 /*!
- * \brief The class LoggerPatternConverter converts the Logger name of a
+ * \brief The class LoggepatternConverter converts the Logger name of a
  *        LoggingEvent to a string.
  *
- * LoggerPatternConverter is used by PatternLayout to convert the Logger
+ * LoggepatternConverter is used by PatternLayout to convert the Logger
  * name of a LoggingEvent to a string as part of formatting the
  * LoggingEvent. It handles the 'c' conversion character.
  *
  * \sa PatternLayout::format()
  * \sa PatternConverter::format()
  */
-class LoggerPatternConverter : public PatternConverter
+class LoggepatternConverter : public PatternConverter
 {
 public:
-    LoggerPatternConverter(const FormattingInfo &rFormattingInfo,
+    LoggepatternConverter(Log4Qt::FormattingInfo formattingInfo,
                            int precision) :
-        PatternConverter(rFormattingInfo),
+        PatternConverter(formattingInfo),
         mPrecision(precision)
-    {};
+    {}
 
 private:
-    Q_DISABLE_COPY(LoggerPatternConverter)
+    Q_DISABLE_COPY_MOVE(LoggepatternConverter)
 
 protected:
-    QString convert(const LoggingEvent &rLoggingEvent) const override;
+    QString convert(const LoggingEvent &loggingEvent) const override;
 
 private:
     int mPrecision;
@@ -252,17 +240,17 @@ private:
 class MDCPatternConverter : public PatternConverter
 {
 public:
-    MDCPatternConverter(const FormattingInfo &rFormattingInfo,
-                        const QString &rKey) :
-        PatternConverter(rFormattingInfo),
-        mKey(rKey)
-    {};
+    MDCPatternConverter(Log4Qt::FormattingInfo formattingInfo,
+                        const QString &key) :
+        PatternConverter(formattingInfo),
+        mKey(key)
+    {}
 
 private:
-    Q_DISABLE_COPY(MDCPatternConverter)
+    Q_DISABLE_COPY_MOVE(MDCPatternConverter)
 
 protected:
-    QString convert(const LoggingEvent &rLoggingEvent) const override;
+    QString convert(const LoggingEvent &loggingEvent) const override;
 
 private:
     QString mKey;
@@ -270,12 +258,11 @@ private:
 
 LOG4QT_DECLARE_STATIC_LOGGER(logger, Log4Qt::PatternFormatter)
 
-PatternFormatter::PatternFormatter(const QString &rPattern) :
-    mIgnoreCharacters(QLatin1String("C")),
-    mConversionCharacters(QLatin1String("cdmprtxXFMLl")),
-    mOptionCharacters(QLatin1String("cd")),
-    mPattern(rPattern),
-    mPatternConverters()
+PatternFormatter::PatternFormatter(const QString &pattern) :
+    mIgnoreCharacters(QStringLiteral("C")),
+    mConversionCharacters(QStringLiteral("cdmprtxXFMLl")),
+    mOptionCharacters(QStringLiteral("cd")),
+    mPattern(pattern)
 {
     parse();
 }
@@ -287,106 +274,106 @@ PatternFormatter::~PatternFormatter()
 }
 
 
-QString PatternFormatter::format(const LoggingEvent &rLoggingEvent) const
+QString PatternFormatter::format(const LoggingEvent &loggingEvent) const
 {
     QString result;
-    for (auto p_converter : mPatternConverters)
-        p_converter->format(result, rLoggingEvent);
+    for (auto &&p_converter : qAsConst(mPatternConverters))
+        p_converter->format(result, loggingEvent);
     return result;
 }
 
 
-bool PatternFormatter::addDigit(const QChar &rDigit,
-                                int &rValue)
+bool PatternFormatter::addDigit(QChar digit,
+                                int &value)
 {
-    if (!rDigit.isDigit())
+    if (!digit.isDigit())
         return false;
 
-    int digit_value = rDigit.digitValue();
-    if (rValue > (INT_MAX - digit_value) / 10)
-        rValue = INT_MAX;
+    int digit_value = digit.digitValue();
+    if (value > (INT_MAX - digit_value) / 10)
+        value = INT_MAX;
     else
-        rValue = rValue * 10 + digit_value;
+        value = value * 10 + digit_value;
     return true;
 }
 
 
-void PatternFormatter::createConverter(const QChar &rChar,
-                                       const FormattingInfo &rFormattingInfo,
-                                       const QString &rOption)
+void PatternFormatter::createConverter(QChar character,
+                                       Log4Qt::FormattingInfo formattingInfo,
+                                       const QString &option)
 {
-    Q_ASSERT_X(mConversionCharacters.indexOf(rChar) >= 0, "PatternFormatter::createConverter", "Unknown conversion character" );
+    Q_ASSERT_X(mConversionCharacters.indexOf(character) >= 0, "PatternFormatter::createConverter", "Unknown conversion character" );
 
     LogError e("Creating Converter for character '%1' min %2, max %3, left %4 and option '%5'");
-    e << QString(rChar)
-      << FormattingInfo::intToString(rFormattingInfo.mMinLength)
-      << FormattingInfo::intToString(rFormattingInfo.mMaxLength)
-      << rFormattingInfo.mLeftAligned
-      << rOption;
+    e << QString(character)
+      << FormattingInfo::intToString(formattingInfo.mMinLength)
+      << FormattingInfo::intToString(formattingInfo.mMaxLength)
+      << formattingInfo.mLeftAligned
+      << option;
     logger()->trace(e);
 
-    switch (rChar.toLatin1())
+    switch (character.toLatin1())
     {
     case 'c':
-        mPatternConverters << new LoggerPatternConverter(rFormattingInfo,
-                           parseIntegerOption(rOption));
+        mPatternConverters << new LoggepatternConverter(formattingInfo,
+                           parseIntegeoption(option));
         break;
     case 'd':
     {
-        QString option = rOption;
-        if (rOption.isEmpty())
-            option = QLatin1String("ISO8601");
-        else if (rOption == "locale:long")
-            option = QLocale().dateTimeFormat(QLocale::LongFormat);
-        else if (rOption == "locale:short")
-            option = QLocale().dateTimeFormat(QLocale::ShortFormat);
-        else if (rOption == "locale:narrow")
-            option = QLocale().dateTimeFormat(QLocale::NarrowFormat);
-        else if (rOption == "locale")
-            option = QLocale().dateTimeFormat(QLocale::ShortFormat);
-        mPatternConverters << new DatePatternConverter(rFormattingInfo,
-                           option);
+        QString format = option;
+        if (option.isEmpty())
+            format = QStringLiteral("ISO8601");
+        else if (option == QLatin1String("locale:long"))
+            format = QLocale().dateTimeFormat(QLocale::LongFormat);
+        else if (option == QLatin1String("locale:short"))
+            format = QLocale().dateTimeFormat(QLocale::ShortFormat);
+        else if (option == QLatin1String("locale:narrow"))
+            format = QLocale().dateTimeFormat(QLocale::NarrowFormat);
+        else if (option == QLatin1String("locale"))
+            format = QLocale().dateTimeFormat(QLocale::ShortFormat);
+        mPatternConverters << new DatePatternConverter(formattingInfo,
+                                                       format);
         break;
     }
     case 'm':
-        mPatternConverters << new BasicPatternConverter(rFormattingInfo,
-                           BasicPatternConverter::MESSAGE_CONVERTER);
+        mPatternConverters << new BasicPatternConverter(formattingInfo,
+                                                        BasicPatternConverter::MESSAGE_CONVERTER);
         break;
     case 'p':
-        mPatternConverters << new BasicPatternConverter(rFormattingInfo,
-                           BasicPatternConverter::LEVEL_CONVERTER);
+        mPatternConverters << new BasicPatternConverter(formattingInfo,
+                                                        BasicPatternConverter::LEVEL_CONVERTER);
         break;
     case 'r':
-        mPatternConverters << new DatePatternConverter(rFormattingInfo,
-                           QLatin1String("RELATIVE"));
+        mPatternConverters << new DatePatternConverter(formattingInfo,
+                                                       QStringLiteral("RELATIVE"));
         break;
     case 't':
-        mPatternConverters << new BasicPatternConverter(rFormattingInfo,
-                           BasicPatternConverter::THREAD_CONVERTER);
+        mPatternConverters << new BasicPatternConverter(formattingInfo,
+                                                        BasicPatternConverter::THREAD_CONVERTER);
         break;
     case 'x':
-        mPatternConverters << new BasicPatternConverter(rFormattingInfo,
-                           BasicPatternConverter::NDC_CONVERTER);
+        mPatternConverters << new BasicPatternConverter(formattingInfo,
+                                                        BasicPatternConverter::NDC_CONVERTER);
         break;
     case 'X':
-        mPatternConverters << new MDCPatternConverter(rFormattingInfo,
-                           rOption);
+        mPatternConverters << new MDCPatternConverter(formattingInfo,
+                                                      option);
         break;
     case 'F':
-        mPatternConverters << new BasicPatternConverter(rFormattingInfo,
-                           BasicPatternConverter::FILENAME_CONVERTER);
+        mPatternConverters << new BasicPatternConverter(formattingInfo,
+                                                        BasicPatternConverter::FILENAME_CONVERTER);
         break;
     case 'M':
-        mPatternConverters << new BasicPatternConverter(rFormattingInfo,
-                           BasicPatternConverter::FUNCTIONNAME_CONVERTER);
+        mPatternConverters << new BasicPatternConverter(formattingInfo,
+                                                        BasicPatternConverter::FUNCTIONNAME_CONVERTER);
         break;
     case 'L':
-        mPatternConverters << new BasicPatternConverter(rFormattingInfo,
-                           BasicPatternConverter::LINENUMBER_CONVERTER);
+        mPatternConverters << new BasicPatternConverter(formattingInfo,
+                                                        BasicPatternConverter::LINENUMBER_CONVERTER);
         break;
     case 'l':
-        mPatternConverters << new BasicPatternConverter(rFormattingInfo,
-                           BasicPatternConverter::LOCATION_CONVERTER);
+        mPatternConverters << new BasicPatternConverter(formattingInfo,
+                                                        BasicPatternConverter::LOCATION_CONVERTER);
         break;
     default:
         Q_ASSERT_X(false, "PatternFormatter::createConverter", "Unknown pattern character");
@@ -394,11 +381,11 @@ void PatternFormatter::createConverter(const QChar &rChar,
 }
 
 
-void PatternFormatter::createLiteralConverter(const QString &rLiteral)
+void PatternFormatter::createLiteralConverter(const QString &literal)
 {
-    logger()->trace("Creating literal LiteralConverter with Literal '%1'",
-                    rLiteral);
-    mPatternConverters << new LiteralPatternConverter(rLiteral);
+    logger()->trace(QStringLiteral("Creating literal LiteralConverter with Literal '%1'"),
+                    literal);
+    mPatternConverters << new LiteralPatternConverter(literal);
 }
 
 
@@ -526,7 +513,7 @@ void PatternFormatter::parse()
             }
             else
             {
-                logger()->warn("Invalid conversion character '%1' at %2 in pattern '%3'",
+                logger()->warn(QStringLiteral("Invalid conversion character '%1' at %2 in pattern '%3'"),
                                c, i, mPattern);
                 createLiteralConverter(mPattern.mid(converter_start, i - converter_start + 1));
                 state = LITERAL_STATE;
@@ -564,11 +551,11 @@ void PatternFormatter::parse()
 
     if (state != LITERAL_STATE)
     {
-        logger()->warn("Unexptected end of pattern '%1'", mPattern);
+        logger()->warn(QStringLiteral("Unexptected end of pattern '%1'"), mPattern);
         if (state == ESCAPE_STATE)
             literal += c;
         else
-            literal += mPattern.midRef(converter_start);
+            literal += mPattern.mid(converter_start);
     }
 
     if (!literal.isEmpty())
@@ -576,26 +563,26 @@ void PatternFormatter::parse()
 }
 
 
-int PatternFormatter::parseIntegerOption(const QString &rOption)
+int PatternFormatter::parseIntegeoption(const QString &option)
 {
-    if (rOption.isEmpty())
+    if (option.isEmpty())
         return 0;
 
     bool ok;
-    int result = rOption.toInt(&ok);
+    int result = option.toInt(&ok);
     if (!ok)
     {
         LogError e = LOG4QT_ERROR(QT_TR_NOOP("Option '%1' cannot be converted into an integer"),
                                   LAYOUT_OPTION_IS_NOT_INTEGER_ERROR,
-                                  "Log4Qt::PatterFormatter");
-        e << rOption;
+                                  "Log4Qt::Patteformatter");
+        e << option;
         logger()->error(e);
     }
     if (result < 0)
     {
         LogError e = LOG4QT_ERROR(QT_TR_NOOP("Option %1 isn't a positive integer"),
                                   LAYOUT_INTEGER_IS_NOT_POSITIVE_ERROR,
-                                  "Log4Qt::PatterFormatter");
+                                  "Log4Qt::Patteformatter");
         e << result;
         logger()->error(e);
         result = 0;
@@ -614,83 +601,82 @@ void FormattingInfo::clear()
 QString FormattingInfo::intToString(int i)
 {
     if (i == INT_MAX)
-        return QLatin1String("INT_MAX");
-    else
-        return QString::number(i);
+        return QStringLiteral("INT_MAX");
+    return QString::number(i);
 }
 
-void PatternConverter::format(QString &rFormat, const LoggingEvent &rLoggingEvent) const
+void PatternConverter::format(QString &format, const LoggingEvent &loggingEvent) const
 {
     Q_DECL_CONSTEXPR const QLatin1Char space(' ');
-    const QString s = convert(rLoggingEvent);
+    const QString s = convert(loggingEvent);
 
     // If the data item is longer than the maximum field, then the extra characters
     // are removed from the beginning of the data item and not from the end.
     if (s.length() > mFormattingInfo.mMaxLength)
-        rFormat += s.rightRef(mFormattingInfo.mMaxLength);
+        format += s.right(mFormattingInfo.mMaxLength);
     else if (mFormattingInfo.mLeftAligned)
-        rFormat += s.leftJustified(mFormattingInfo.mMinLength, space, false);
+        format += s.leftJustified(mFormattingInfo.mMinLength, space, false);
     else
-        rFormat += s.rightJustified(mFormattingInfo.mMinLength, space, false);
+        format += s.rightJustified(mFormattingInfo.mMinLength, space, false);
 }
 
-QString BasicPatternConverter::convert(const LoggingEvent &rLoggingEvent) const
+QString BasicPatternConverter::convert(const LoggingEvent &loggingEvent) const
 {
     switch (mType)
     {
     case MESSAGE_CONVERTER:
-        return rLoggingEvent.message();
+        return loggingEvent.message();
     case NDC_CONVERTER:
-        return rLoggingEvent.ndc();
+        return loggingEvent.ndc();
     case LEVEL_CONVERTER:
-        return rLoggingEvent.level().toString();
+        return loggingEvent.level().toString();
     case THREAD_CONVERTER:
-        return rLoggingEvent.threadName();
+        return loggingEvent.threadName();
     case FILENAME_CONVERTER:
-        return rLoggingEvent.context().file;
+        return loggingEvent.context().file;
     case LINENUMBER_CONVERTER:
-        return QString::number(rLoggingEvent.context().line);
+        return QString::number(loggingEvent.context().line);
     case FUNCTIONNAME_CONVERTER:
-        return rLoggingEvent.context().function;
+        return loggingEvent.context().function;
     case LOCATION_CONVERTER:
-        return QString("%1:%2 - %3").arg(rLoggingEvent.context().file, QString::number(rLoggingEvent.context().line), rLoggingEvent.context().function);
+        return QStringLiteral("%1:%2 - %3").arg(loggingEvent.context().file, QString::number(loggingEvent.context().line), loggingEvent.context().function);
     case CATEGORYNAME_CONVERTER:
-        return rLoggingEvent.categoryName();
+        return loggingEvent.categoryName();
     default:
-        Q_ASSERT_X(false, "BasicPatternConverter::convert()", "Unkown type constant");
+        Q_ASSERT_X(false, "BasicPatternConverter::convert()", "Unknown type constant");
         return QString();
     }
 }
 
-QString DatePatternConverter::convert(const LoggingEvent &rLoggingEvent) const
+QString DatePatternConverter::convert(const LoggingEvent &loggingEvent) const
 {
-    return DateTime::fromMSecsSinceEpoch(rLoggingEvent.timeStamp()).toString(mFormat);
+    return DateTime::fromMSecsSinceEpoch(loggingEvent.timeStamp()).toString(mFormat);
 }
 
-QString LiteralPatternConverter::convert(const LoggingEvent &rLoggingEvent) const
+QString LiteralPatternConverter::convert(const LoggingEvent &loggingEvent) const
 {
-    Q_UNUSED(rLoggingEvent);
+    Q_UNUSED(loggingEvent);
     return mLiteral;
 }
 
-QString LoggerPatternConverter::convert(const LoggingEvent &rLoggingEvent) const
+QString LoggepatternConverter::convert(const LoggingEvent &loggingEvent) const
 {
-    if (!rLoggingEvent.logger())
+    if (!loggingEvent.logger())
         return QString();
     QString name;
 
-    if (rLoggingEvent.logger() == LogManager::instance()->qtLogger())   // is qt logger
-        if (rLoggingEvent.categoryName().isEmpty())
+    if (loggingEvent.logger() == LogManager::instance()->qtLogger())   // is qt logger
+        if (loggingEvent.categoryName().isEmpty())
             name = LogManager::instance()->qtLogger()->name();
         else
-            name = rLoggingEvent.categoryName();
+            name = loggingEvent.categoryName();
     else
-        name = rLoggingEvent.logger()->name();
+        name = loggingEvent.logger()->name();
 
     if (mPrecision <= 0 || (name.isEmpty()))
         return name;
 
-    const QString separator(QLatin1String("::"));
+    const QString separator(QStringLiteral("::"));
 
     int i = mPrecision;
     int begin = name.length();
@@ -706,9 +692,9 @@ QString LoggerPatternConverter::convert(const LoggingEvent &rLoggingEvent) const
     return name.mid(begin);
 }
 
-QString MDCPatternConverter::convert(const LoggingEvent &rLoggingEvent) const
+QString MDCPatternConverter::convert(const LoggingEvent &loggingEvent) const
 {
-    return rLoggingEvent.mdc().value(mKey);
+    return loggingEvent.mdc().value(mKey);
 }
 
 } // namespace Log4Qt

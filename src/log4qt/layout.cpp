@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        layout.cpp
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,16 +26,15 @@
 namespace Log4Qt
 {
 
-Layout::Layout(QObject *pParent) :
-    QObject(pParent)
+Layout::Layout(QObject *parent) :
+    QObject(parent)
 {}
 
-Layout::~Layout()
-{}
+Layout::~Layout() = default;
 
 QString Layout::contentType() const
 {
-    return QString::fromLatin1("text/plain");
+    return QStringLiteral("text/plain");
 }
 
 void Layout::activateOptions()
@@ -49,7 +44,7 @@ void Layout::activateOptions()
 QString Layout::endOfLine()
 {
     // There seams to be no function in Qt for this. MinGW enter '\r\n' automatically
-    return QLatin1String("\n");
+    return QStringLiteral("\n");
 }
 
 } // namespace Log4Qt

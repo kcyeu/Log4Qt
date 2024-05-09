@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        properties.cpp
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,9 +35,9 @@ void Properties::load(QIODevice *pDevice)
 {
     const QLatin1Char append_char(msEscapeChar);
 
-    if (!pDevice)
+    if (pDevice == nullptr)
     {
-        logger()->warn("No device specified for load.");
+        logger()->warn(QStringLiteral("No device specified for load."));
         return;
     }
 
@@ -57,7 +53,7 @@ void Properties::load(QIODevice *pDevice)
         line_number++;
 
         if (!line.isEmpty() && line.at(line.length() - 1) == append_char)
-            property += line.leftRef(line.length() - 1);
+            property += line.left(line.length() - 1);
         else
         {
             property += line;
@@ -70,42 +66,39 @@ void Properties::load(QIODevice *pDevice)
 }
 
 
-void Properties::load(const QSettings &rSettings)
+void Properties::load(const QSettings &settings)
 {
-    QStringList keys = rSettings.childKeys();
-    for (const auto &key : keys)
-        insert(key, rSettings.value(key).toString());
+    QStringList keys = settings.childKeys();
+    for (const auto &key : qAsConst(keys))
+        insert(key, settings.value(key).toString());
 }
 
 
-QString Properties::property(const QString &rKey) const
+QString Properties::property(const QString &key) const
 {
     // Null string indicates the property does not contain the key.
 
-    if (contains(rKey))
+    if (contains(key))
     {
-        QString value = this->value(rKey);
+        QString value = this->value(key);
         if (value.isNull())
             return QString(QLatin1String(""));
-        else
-            return value;
+        return value;
     }
 
     if (mpDefaultProperties)
-        return mpDefaultProperties->property(rKey);
-    else
-        return QString();
+        return mpDefaultProperties->property(key);
+    return QString();
 }
 
 
-QString Properties::property(const QString &rKey,
-                             const QString &rDefaultValue) const
+QString Properties::property(const QString &key,
+                             const QString &defaultValue) const
 {
-    QString value = property(rKey);
+    QString value = property(key);
     if (value.isNull())
-        return rDefaultValue;
-    else
-        return value;
+        return defaultValue;
+    return value;
 }
 
 QStringList Properties::propertyNames() const
@@ -115,7 +108,7 @@ QStringList Properties::propertyNames() const
         default_keys = mpDefaultProperties->propertyNames();
 
     QStringList keys = this->keys();
-    for (const auto &key : default_keys)
+    for (const auto &key : qAsConst(default_keys))
         if (!keys.contains(key))
             keys << key;
 
@@ -123,10 +116,10 @@ QStringList Properties::propertyNames() const
 }
 
 
-void Properties::parseProperty(const QString &rProperty,
+void Properties::parseProperty(const QString &property,
                                int line)
 {
-    Q_ASSERT_X(rProperty == trimLeft(rProperty), "parseProperty()", "rProperty has leading spaces");
+    Q_ASSERT_X(property == trimLeft(property), "parseProperty()", "property has leading spaces");
 
     enum State
     {
@@ -145,27 +138,26 @@ void Properties::parseProperty(const QString &rProperty,
     const QString key_escape_chars = QLatin1String(msKeyEscapeChars);
     Q_ASSERT_X(key_escape_codes.length() == key_escape_chars.length(), "parseProperty()", "Key escape sequence character definition does not map");
 
-    if (rProperty.isEmpty())
+    if (property.isEmpty())
         return;
 
     int i = 0;
     QChar c;
-    char ch;
     State state = KEY_STATE;
     QString key;
     QString value;
     QString *p_string = &key;
     uint ucs = 0;
     int ucs_digits = 0;
-    while (i < rProperty.length())
+    while (i < property.length())
     {
         // i points to the current character.
         // c contains the current character
         // ch contains the Latin1 equivalent of the current character
         // i is incremented at the end of the loop to consume the character.
         // continue is used to change state without consuming the character
-
-        c = rProperty.at(i);
+        char ch;
+        c = property.at(i);
         ch = c.toLatin1();
 
         switch (state)
@@ -217,7 +209,7 @@ void Properties::parseProperty(const QString &rProperty,
                 *p_string += key_escape_chars.at(convert);
             else
             {
-                logger()->warn("Unknown escape sequence '\\%1' in key of property starting at line %2",
+                logger()->warn(QStringLiteral("Unknown escape sequence '\\%1' in key of property starting at line %2"),
                                QString(c),
                                line);
                 *p_string += c;
@@ -241,7 +233,7 @@ void Properties::parseProperty(const QString &rProperty,
             }
             else
             {
-                logger()->warn("Unknown escape sequence '\\%1' in value of property starting at line %2", QString(c), line);
+                logger()->warn(QStringLiteral("Unknown escape sequence '\\%1' in value of property starting at line %2"), QString(c), line);
                 *p_string += c;
                 state = VALUE_STATE;
             }
@@ -254,7 +246,7 @@ void Properties::parseProperty(const QString &rProperty,
             {
                 ucs = ucs * 16 + hex;
                 ucs_digits++;
-                if (ucs_digits == 4 || i == rProperty.length() - 1)
+                if (ucs_digits == 4 || i == property.length() - 1)
                 {
                     *p_string += QChar(ucs);
                     state = VALUE_STATE;
@@ -277,32 +269,32 @@ void Properties::parseProperty(const QString &rProperty,
     }
 
     if (key.isEmpty() && !value.isEmpty())
-        logger()->warn("Found value with no key in property starting at line %1", line);
+        logger()->warn(QStringLiteral("Found value with no key in property starting at line %1"), line);
 
-    logger()->trace("Loaded property '%1' : '%2'", key, value);
+    logger()->trace(QStringLiteral("Loaded property '%1' : '%2'"), key, value);
     insert(key, value);
 }
 
-int Properties::hexDigitValue(const QChar &rDigit)
+int Properties::hexDigitValue(QChar digit)
 {
     bool ok;
-    int result = QString(rDigit).toInt(&ok, 16);
+    int result = QString(digit).toInt(&ok, 16);
     if (!ok)
         return -1;
-    else
-        return result;
+
+    return result;
 }
 
-QString Properties::trimLeft(const QString &rLine)
+QString Properties::trimLeft(const QString &line)
 {
     int i = 0;
-    while (i < rLine.length() && rLine.at(i).isSpace())
+    while (i < line.length() && line.at(i).isSpace())
         i++;
-    return rLine.right(rLine.length() - i);
+    return line.right(line.length() - i);
 }
 
 const char Properties::msEscapeChar = '\\';
-const char *Properties::msValueEscapeCodes = "tnr\\\"\' ";
+const char *Properties::msValueEscapeCodes = R"(tnr\"' )";
 const char *Properties::msValueEscapeChars = "\t\n\r\\\"\' ";
 const char *Properties::msKeyEscapeCodes = " :=";
 const char *Properties::msKeyEscapeChars = " :=";

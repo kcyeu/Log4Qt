@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        listappender.h
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +21,8 @@
 #ifndef LOG4QT_LISTAPPENDER_H
 #define LOG4QT_LISTAPPENDER_H
 
-#include <log4qt/appenderskeleton.h>
-#include <log4qt/loggingevent.h>
+#include "log4qt/appenderskeleton.h"
+#include "log4qt/loggingevent.h"
 
 #include <QList>
 
@@ -42,7 +38,7 @@ namespace Log4Qt
  * \note The ownership and lifetime of objects of this class are managed.
  *       See \ref Ownership "Object ownership" for more details.
  */
-class  LOG4QT_EXPORT ListAppender : public AppenderSkeleton
+class LOG4QT_EXPORT ListAppender : public AppenderSkeleton
 {
     Q_OBJECT
 
@@ -65,10 +61,7 @@ class  LOG4QT_EXPORT ListAppender : public AppenderSkeleton
     Q_PROPERTY(int maxCount READ maxCount WRITE setMaxCount)
 
 public:
-    ListAppender(QObject *pParent = nullptr);
-    virtual ~ListAppender();
-private:
-    Q_DISABLE_COPY(ListAppender)
+    ListAppender(QObject *parent = nullptr);
 
 public:
     /*!
@@ -95,10 +88,10 @@ public:
     void setMaxCount(int n);
 
     QList<LoggingEvent> clearList();
-    virtual bool requiresLayout() const override;
+    bool requiresLayout() const override;
 
 protected:
-    virtual void append(const LoggingEvent &rEvent) override;
+    void append(const LoggingEvent &event) override;
 
     /*!
      * Ensures that the count of events is less or equal then the maxium
@@ -108,6 +101,7 @@ protected:
     void ensureMaxCount();
 
 private:
+    Q_DISABLE_COPY_MOVE(ListAppender)
     volatile bool mConfiguratorList;
     QList<LoggingEvent> mList;
     volatile int mMaxCount;

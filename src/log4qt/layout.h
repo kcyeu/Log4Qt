@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        layout.h
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +21,7 @@
 #ifndef LOG4QT_LAYOUT_H
 #define LOG4QT_LAYOUT_H
 
+#include "log4qtdefs.h"
 #include "log4qt.h"
 #include "log4qtsharedptr.h"
 
@@ -65,7 +62,7 @@ class LOG4QT_EXPORT Layout : public QObject
     Q_PROPERTY(QString header READ header WRITE setHeader)
 
 public:
-    Layout(QObject *pParent = nullptr);
+    Layout(QObject *parent = nullptr);
     virtual ~Layout();
 
 public:
@@ -73,12 +70,12 @@ public:
     QString footer() const;
     QString header() const;
     QString name() const;
-    void setFooter(const QString &rFooter);
-    void setHeader(const QString &rHeader);
-    void setName(const QString &rName);
+    void setFooter(const QString &footer);
+    void setHeader(const QString &header);
+    void setName(const QString &name);
 
     virtual void activateOptions();
-    virtual QString format(const LoggingEvent &rEvent) = 0;
+    virtual QString format(const LoggingEvent &event) = 0;
 
     /*!
      * Returns the end of line seperator for the operating system.
@@ -91,7 +88,7 @@ public:
 
     // Member variables
 private:
-    Q_DISABLE_COPY(Layout)
+    Q_DISABLE_COPY_MOVE(Layout)
     QString mFooter;
     QString mHeader;
 };
@@ -111,19 +108,19 @@ inline QString Layout::name() const
     return objectName();
 }
 
-inline void Layout::setFooter(const QString &rFooter)
+inline void Layout::setFooter(const QString &footer)
 {
-    mFooter = rFooter;
+    mFooter = footer;
 }
 
-inline void Layout::setHeader(const QString &rHeader)
+inline void Layout::setHeader(const QString &header)
 {
-    mHeader = rHeader;
+    mHeader = header;
 }
 
-inline void Layout::setName(const QString &rName)
+inline void Layout::setName(const QString &name)
 {
-    setObjectName(rName);
+    setObjectName(name);
 }
 
 using LayoutSharedPtr = Log4QtSharedPtr<Layout>;

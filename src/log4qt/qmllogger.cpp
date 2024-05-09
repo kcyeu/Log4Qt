@@ -1,3 +1,23 @@
+/******************************************************************************
+ *
+ * This file is part of Log4Qt library.
+ *
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
+
 #include "qmllogger.h"
 
 #include "logger.h"
@@ -11,7 +31,7 @@ namespace Log4Qt
 
 QmlLogger::QmlLogger(QObject *parent) :
     QObject(parent)
-    , mContext("Qml")
+    , mContext(QStringLiteral("Qml"))
     , mLogger(nullptr)
 {
 }
@@ -57,7 +77,7 @@ void QmlLogger::setName(const QString &name)
     if (mName != name)
     {
         mName = name;
-        emit nameChanged(name);
+        Q_EMIT nameChanged(name);
     }
 }
 
@@ -76,7 +96,7 @@ void QmlLogger::setContext(const QString &context)
     if (mContext != context)
     {
         mContext = context;
-        emit contextChanged(context);
+        Q_EMIT contextChanged(context);
     }
 }
 
@@ -85,13 +105,13 @@ void QmlLogger::setLevel(QmlLogger::Level level)
     if (this->level() != level)
     {
         mLogger->setLevel(Log4Qt::Level(static_cast<Log4Qt::Level::Value>(level)));
-        emit levelChanged(level);
+        Q_EMIT levelChanged(level);
     }
 }
 
-QString QmlLogger::loggerName() const
+QString QmlLogger::loggename() const
 {
-    if (mName.isEmpty() && parent())
+    if (mName.isEmpty() && (parent() != nullptr))
         mName = parent()->objectName();
 
     if (!mContext.isEmpty())
@@ -101,8 +121,8 @@ QString QmlLogger::loggerName() const
 
 Logger *QmlLogger::logger() const
 {
-    if (!mLogger)
-        mLogger = Log4Qt::Logger::logger(loggerName());
+    if (mLogger == nullptr)
+        mLogger = Log4Qt::Logger::logger(loggename());
 
     return  mLogger;
 }

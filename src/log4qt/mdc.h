@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        mdc.h
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +21,7 @@
 #ifndef LOG4QT_MDC_H
 #define LOG4QT_MDC_H
 
+#include "log4qtdefs.h"
 #include "log4qt.h"
 
 #include <QString>
@@ -34,20 +31,19 @@
 namespace Log4Qt
 {
 
-
 /*!
      * \brief The class MDC implements a mapped diagnostic context.
      *
      * \note All the functions declared in this class are thread-safe.
      */
-class  LOG4QT_EXPORT MDC
+class LOG4QT_EXPORT MDC
 {
 private:
     MDC();
-    Q_DISABLE_COPY(MDC)
+    Q_DISABLE_COPY_MOVE(MDC)
 
 public:
-    static QString get(const QString &rKey);
+    static QString get(const QString &key);
     static QHash<QString, QString> context();
 
     /*!
@@ -55,8 +51,8 @@ public:
      */
     static MDC *instance();
 
-    static void put(const QString &rKey, const QString &rValue);
-    static void remove(const QString &rKey);
+    static void put(const QString &key, const QString &value);
+    static void remove(const QString &key);
 
 private:
     static QHash<QString, QString> *localData();
@@ -65,18 +61,17 @@ private:
     QThreadStorage<QHash<QString, QString> *> mHash;
 };
 
-inline MDC::MDC() :
-    mHash()
+inline MDC::MDC()
 {}
 
-inline void MDC::put(const QString &rKey, const QString &rValue)
+inline void MDC::put(const QString &key, const QString &value)
 {
-    localData()->insert(rKey, rValue);
+    localData()->insert(key, value);
 }
 
-inline void MDC::remove(const QString &rKey)
+inline void MDC::remove(const QString &key)
 {
-    localData()->remove(rKey);
+    localData()->remove(key);
 }
 
 

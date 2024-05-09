@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        factory.cpp
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +18,9 @@
  *
  ******************************************************************************/
 
-
 #include "helpers/factory.h"
 
 #include "consoleappender.h"
-#include "colorconsoleappender.h"
 #include "dailyrollingfileappender.h"
 #include "fileappender.h"
 #include "helpers/logerror.h"
@@ -58,6 +52,7 @@
 #include "rollingbinaryfileappender.h"
 #include "dailyfileappender.h"
 #ifdef Q_OS_WIN
+#include "colorconsoleappender.h"
 #include "wdcappender.h"
 #endif
 
@@ -120,11 +115,6 @@ Appender *create_signal_appender()
     return new SignalAppender;
 }
 
-Appender *create_color_console_appender()
-{
-    return new ColorConsoleAppender;
-}
-
 #if defined(QT_SQL_LIB)
 Appender *create_database_appender()
 {
@@ -173,6 +163,11 @@ Appender *create_dailyrollingfile_appender()
 Appender *create_wdc_appender()
 {
     return new WDCAppender;
+}
+
+Appender *create_color_console_appender()
+{
+    return new ColorConsoleAppender;
 }
 #endif
 
@@ -246,105 +241,99 @@ Layout *create_xml_layout()
     return new XMLLayout;
 }
 
-Factory::Factory() :
-    mObjectGuard(),
-    mAppenderRegistry(),
-    mFilterRegistry(),
-    mLayoutRegistry()
+Factory::Factory()
 {
     registerDefaultAppenders();
     registerDefaultFilters();
     registerDefaultLayouts();
 }
 
-
 LOG4QT_IMPLEMENT_INSTANCE(Factory)
 
-
-Appender *Factory::doCreateAppender(const QString &rAppenderClassName)
+Appender *Factory::doCreateAppender(const QString &appenderClassName)
 {
     QMutexLocker locker(&mObjectGuard);
 
-    if (!mAppenderRegistry.contains(rAppenderClassName))
+    if (!mAppenderRegistry.contains(appenderClassName))
     {
-        logger()->warn("Request for the creation of Appender with class '%1', which is not registered", rAppenderClassName);
+        logger()->warn(QStringLiteral("Request for the creation of Appender with class '%1', which is not registered"), appenderClassName);
         return nullptr;
     }
-    return mAppenderRegistry.value(rAppenderClassName)();
+    return mAppenderRegistry.value(appenderClassName)();
 }
 
 
-Filter *Factory::doCreateFilter(const QString &rFilterClassName)
+Filter *Factory::doCreateFilter(const QString &filterClassName)
 {
     QMutexLocker locker(&mObjectGuard);
 
-    if (!mFilterRegistry.contains(rFilterClassName))
+    if (!mFilterRegistry.contains(filterClassName))
     {
-        logger()->warn("Request for the creation of Filter with class '%1', which is not registered", rFilterClassName);
+        logger()->warn(QStringLiteral("Request for the creation of Filter with class '%1', which is not registered"), filterClassName);
         return nullptr;
     }
-    return mFilterRegistry.value(rFilterClassName)();
+    return mFilterRegistry.value(filterClassName)();
 }
 
 
-Layout *Factory::doCreateLayout(const QString &rLayoutClassName)
+Layout *Factory::doCreateLayout(const QString &layoutClassName)
 {
     QMutexLocker locker(&mObjectGuard);
 
-    if (!mLayoutRegistry.contains(rLayoutClassName))
+    if (!mLayoutRegistry.contains(layoutClassName))
     {
-        logger()->warn("Request for the creation of Layout with class '%1', which is not registered", rLayoutClassName);
+        logger()->warn(QStringLiteral("Request for the creation of Layout with class '%1', which is not registered"), layoutClassName);
         return nullptr;
     }
-    return mLayoutRegistry.value(rLayoutClassName)();
+    return mLayoutRegistry.value(layoutClassName)();
 }
 
 
-void Factory::doRegisterAppender(const QString &rAppenderClassName,
-                                 AppenderFactoryFunc pAppenderFactoryFunc)
+void Factory::doRegisterAppender(const QString &appenderClassName,
+                                 AppenderFactoryFunc appenderFactoryFunc)
 {
     QMutexLocker locker(&mObjectGuard);
 
-    if (rAppenderClassName.isEmpty())
+    if (appenderClassName.isEmpty())
     {
-        logger()->warn("Registering Appender factory function with empty class name");
+        logger()->warn(QStringLiteral("Registering Appender factory function with empty class name"));
         return;
     }
-    mAppenderRegistry.insert(rAppenderClassName, pAppenderFactoryFunc);
+    mAppenderRegistry.insert(appenderClassName, appenderFactoryFunc);
 }
 
 
-void Factory::doRegisterFilter(const QString &rFilterClassName,
-                               FilterFactoryFunc pFilterFactoryFunc)
+void Factory::doRegisterFilter(const QString &filterClassName,
+                               FilterFactoryFunc filterFactoryFunc)
 {
     QMutexLocker locker(&mObjectGuard);
 
-    if (rFilterClassName.isEmpty())
+    if (filterClassName.isEmpty())
     {
-        logger()->warn("Registering Filter factory function with empty class name");
+        logger()->warn(QStringLiteral("Registering Filter factory function with empty class name"));
         return;
     }
-    mFilterRegistry.insert(rFilterClassName, pFilterFactoryFunc);
+    mFilterRegistry.insert(filterClassName, filterFactoryFunc);
 }
 
 
-void Factory::doRegisterLayout(const QString &rLayoutClassName,
-                               LayoutFactoryFunc pLayoutFactoryFunc)
+void Factory::doRegisterLayout(const QString &layoutClassName,
+                               LayoutFactoryFunc layoutFactoryFunc)
 {
     QMutexLocker locker(&mObjectGuard);
 
-    if (rLayoutClassName.isEmpty())
+    if (layoutClassName.isEmpty())
     {
-        logger()->warn("Registering Layout factory function with empty class name");
+        logger()->warn(QStringLiteral("Registering Layout factory function with empty class name"));
         return;
     }
-    mLayoutRegistry.insert(rLayoutClassName, pLayoutFactoryFunc);
+    mLayoutRegistry.insert(layoutClassName, layoutFactoryFunc);
 }
 
 
-void Factory::doSetObjectProperty(QObject *pObject,
-                                  const QString &rProperty,
-                                  const QString &rValue)
+void Factory::doSetObjectProperty(QObject *object,
+                                  const QString &property,
+                                  const QString &value)
 {
     // - Validate property
     // - Get correct property name from meta object
@@ -354,26 +343,33 @@ void Factory::doSetObjectProperty(QObject *pObject,
     // - Call property setter
 
     QMetaProperty meta_property;
-    if (!validateObjectProperty(meta_property, rProperty, pObject))
+    if (!validateObjectProperty(meta_property, property, object))
         return;
 
-    QString property = QLatin1String(meta_property.name());
+    QString propertyString = QLatin1String(meta_property.name());
     QString type = QLatin1String(meta_property.typeName());
-    logger()->debug("Setting property '%1' on object of class '%2' to value '%3'",
-                    property,
-                    QLatin1String(pObject->metaObject()->className()),
-                    rValue);
+    logger()->debug(QStringLiteral("Setting property '%1' on object of class '%2' to value '%3'"),
+                    propertyString,
+                    QLatin1String(object->metaObject()->className()),
+                    value);
 
-    QVariant value;
+    QVariant variant;
     bool ok = true;
-    if (type == QLatin1String("bool"))
-        value = OptionConverter::toBoolean(rValue, &ok);
-    else if (type == QLatin1String("int"))
-        value = OptionConverter::toInt(rValue, &ok);
-    else if (type == QLatin1String("Log4Qt::Level"))
-        value = QVariant::fromValue(OptionConverter::toLevel(rValue, &ok));
-    else if (type == QLatin1String("QString"))
-        value = rValue;
+    if (type == QStringLiteral("bool"))
+        variant = OptionConverter::toBoolean(value, &ok);
+    else if (type == QStringLiteral("int"))
+        variant = OptionConverter::toInt(value, &ok);
+    else if (type == QStringLiteral("Log4Qt::Level"))
+        variant = QVariant::fromValue(OptionConverter::toLevel(value, &ok));
+    else if (type == QStringLiteral("QString"))
+        variant = value;
+#if QT_VERSION < 0x060000
+    else if (type == QStringLiteral("QTextCodec*"))
+        variant = QVariant::fromValue(OptionConverter::toEncoding(value, &ok));
+#else
+    else if (type == QStringLiteral("QStringConverter::Encoding"))
+        variant = QVariant::fromValue(OptionConverter::toEncoding(value, &ok));
+#endif
     else
     {
         LogError e = LOG4QT_ERROR(QT_TR_NOOP("Cannot convert to type '%1' for property '%2' on object of class '%3'"),
@@ -381,7 +377,7 @@ void Factory::doSetObjectProperty(QObject *pObject,
                                   "Log4Qt::Factory");
         e << type
           << property
-          << QString::fromLatin1(pObject->metaObject()->className());
+          << QString::fromLatin1(object->metaObject()->className());
         logger()->error(e);
         return;
     }
@@ -390,151 +386,153 @@ void Factory::doSetObjectProperty(QObject *pObject,
 
     // Everything is checked and the type is the one of the property.
     // Write should never return false
-    if (!meta_property.write(pObject, value))
-        logger()->warn("Unxpected error result from QMetaProperty.write()");
+    if (!meta_property.write(object, variant))
+        logger()->warn(QStringLiteral("Unxpected error result from QMetaProperty.write()"));
 }
 
 
-void Factory::doUnregisterAppender(const QString &rAppenderClassName)
+void Factory::doUnregisterAppender(const QString &appenderClassName)
 {
     QMutexLocker locker(&mObjectGuard);
 
-    if (!mAppenderRegistry.contains(rAppenderClassName))
+    if (!mAppenderRegistry.contains(appenderClassName))
     {
-        logger()->warn("Request to unregister not registered Appender factory function for class '%1'", rAppenderClassName);
+        logger()->warn(QStringLiteral("Request to unregister not registered Appender factory function for class '%1'"), appenderClassName);
         return;
     }
-    mAppenderRegistry.remove(rAppenderClassName);
+    mAppenderRegistry.remove(appenderClassName);
 }
 
 
-void Factory::doUnregisterFilter(const QString &rFilterClassName)
+void Factory::doUnregisterFilter(const QString &filterClassName)
 {
     QMutexLocker locker(&mObjectGuard);
 
-    if (!mFilterRegistry.contains(rFilterClassName))
+    if (!mFilterRegistry.contains(filterClassName))
     {
-        logger()->warn("Request to unregister not registered Filter factory function for class '%1'", rFilterClassName);
+        logger()->warn(QStringLiteral("Request to unregister not registered Filter factory function for class '%1'"), filterClassName);
         return;
     }
-    mFilterRegistry.remove(rFilterClassName);
+    mFilterRegistry.remove(filterClassName);
 }
 
 
-void Factory::doUnregisterLayout(const QString &rLayoutClassName)
+void Factory::doUnregisterLayout(const QString &layoutClassName)
 {
     QMutexLocker locker(&mObjectGuard);
 
-    if (!mLayoutRegistry.contains(rLayoutClassName))
+    if (!mLayoutRegistry.contains(layoutClassName))
     {
-        logger()->warn("Request to unregister not registered Layout factory function for class '%1'", rLayoutClassName);
+        logger()->warn(QStringLiteral("Request to unregister not registered Layout factory function for class '%1'"), layoutClassName);
         return;
     }
-    mLayoutRegistry.remove(rLayoutClassName);
+    mLayoutRegistry.remove(layoutClassName);
 }
 
 
 void Factory::registerDefaultAppenders()
 {
-    mAppenderRegistry.insert(QLatin1String("org.apache.log4j.ConsoleAppender"), console_file_appender);
-    mAppenderRegistry.insert(QLatin1String("Log4Qt::ConsoleAppender"), console_file_appender);
-    mAppenderRegistry.insert(QLatin1String("org.apache.log4j.DailyRollingFileAppender"), create_daily_rolling_file_appender);
-    mAppenderRegistry.insert(QLatin1String("Log4Qt::DailyRollingFileAppender"), create_daily_rolling_file_appender);
-    mAppenderRegistry.insert(QLatin1String("org.apache.log4j.varia.DebugAppender"), create_debug_appender);
-    mAppenderRegistry.insert(QLatin1String("Log4Qt::DebugAppender"), create_debug_appender);
-    mAppenderRegistry.insert(QLatin1String("org.apache.log4j.FileAppender"), create_file_appender);
-    mAppenderRegistry.insert(QLatin1String("Log4Qt::FileAppender"), create_file_appender);
-    mAppenderRegistry.insert(QLatin1String("org.apache.log4j.varia.ListAppender"), create_list_appender);
-    mAppenderRegistry.insert(QLatin1String("Log4Qt::ListAppender"), create_list_appender);
-    mAppenderRegistry.insert(QLatin1String("org.apache.log4j.varia.NullAppender"), create_null_appender);
-    mAppenderRegistry.insert(QLatin1String("Log4Qt::NullAppender"), create_null_appender);
-    mAppenderRegistry.insert(QLatin1String("org.apache.log4j.RollingFileAppender"), create_rolling_file_appender);
-    mAppenderRegistry.insert(QLatin1String("Log4Qt::RollingFileAppender"), create_rolling_file_appender);
+    mAppenderRegistry.insert(QStringLiteral("org.apache.log4j.ConsoleAppender"), console_file_appender);
+    mAppenderRegistry.insert(QStringLiteral("Log4Qt::ConsoleAppender"), console_file_appender);
+    mAppenderRegistry.insert(QStringLiteral("org.apache.log4j.DailyRollingFileAppender"), create_daily_rolling_file_appender);
+    mAppenderRegistry.insert(QStringLiteral("Log4Qt::DailyRollingFileAppender"), create_daily_rolling_file_appender);
+    mAppenderRegistry.insert(QStringLiteral("org.apache.log4j.varia.DebugAppender"), create_debug_appender);
+    mAppenderRegistry.insert(QStringLiteral("Log4Qt::DebugAppender"), create_debug_appender);
+    mAppenderRegistry.insert(QStringLiteral("org.apache.log4j.FileAppender"), create_file_appender);
+    mAppenderRegistry.insert(QStringLiteral("Log4Qt::FileAppender"), create_file_appender);
+    mAppenderRegistry.insert(QStringLiteral("org.apache.log4j.varia.ListAppender"), create_list_appender);
+    mAppenderRegistry.insert(QStringLiteral("Log4Qt::ListAppender"), create_list_appender);
+    mAppenderRegistry.insert(QStringLiteral("org.apache.log4j.varia.NullAppender"), create_null_appender);
+    mAppenderRegistry.insert(QStringLiteral("Log4Qt::NullAppender"), create_null_appender);
+    mAppenderRegistry.insert(QStringLiteral("org.apache.log4j.RollingFileAppender"), create_rolling_file_appender);
+    mAppenderRegistry.insert(QStringLiteral("Log4Qt::RollingFileAppender"), create_rolling_file_appender);
 
-    mAppenderRegistry.insert(QLatin1String("org.apache.log4j.SignalAppender"), create_signal_appender);
-    mAppenderRegistry.insert(QLatin1String("Log4Qt::SignalAppender"), create_signal_appender);
-    mAppenderRegistry.insert(QLatin1String("org.apache.log4j.ColorConsoleAppender"), create_color_console_appender);
-    mAppenderRegistry.insert(QLatin1String("Log4Qt::ColorConsoleAppender"), create_color_console_appender);
+    mAppenderRegistry.insert(QStringLiteral("org.apache.log4j.SignalAppender"), create_signal_appender);
+    mAppenderRegistry.insert(QStringLiteral("Log4Qt::SignalAppender"), create_signal_appender);
+#ifdef Q_OS_WIN
+    mAppenderRegistry.insert(QStringLiteral("org.apache.log4j.ColorConsoleAppender"), create_color_console_appender);
+    mAppenderRegistry.insert(QStringLiteral("Log4Qt::ColorConsoleAppender"), create_color_console_appender);
+#endif
 
 #if defined(QT_SQL_LIB)
-    mAppenderRegistry.insert(QLatin1String("org.apache.log4j.DatabaseAppender"), create_database_appender);
-    mAppenderRegistry.insert(QLatin1String("Log4Qt::DatabaseAppender"), create_database_appender);
+    mAppenderRegistry.insert(QStringLiteral("org.apache.log4j.DatabaseAppender"), create_database_appender);
+    mAppenderRegistry.insert(QStringLiteral("Log4Qt::DatabaseAppender"), create_database_appender);
 #endif //#ifdef QT_SQL_LIB
 
 #if defined(QT_NETWORK_LIB)
-    mAppenderRegistry.insert(QLatin1String("org.apache.log4j.TelnetAppender"), create_telnet_appender);
-    mAppenderRegistry.insert(QLatin1String("Log4Qt::TelnetAppender"), create_telnet_appender);
+    mAppenderRegistry.insert(QStringLiteral("org.apache.log4j.TelnetAppender"), create_telnet_appender);
+    mAppenderRegistry.insert(QStringLiteral("Log4Qt::TelnetAppender"), create_telnet_appender);
 #endif
-    mAppenderRegistry.insert(QLatin1String("org.apache.log4j.AsyncAppender"), create_async_appender);
-    mAppenderRegistry.insert(QLatin1String("Log4Qt::AsyncAppender"), create_async_appender);
+    mAppenderRegistry.insert(QStringLiteral("org.apache.log4j.AsyncAppender"), create_async_appender);
+    mAppenderRegistry.insert(QStringLiteral("Log4Qt::AsyncAppender"), create_async_appender);
 
-    mAppenderRegistry.insert(QLatin1String("org.apache.log4j.MainThreadAppender"), create_mainthread_appender);
-    mAppenderRegistry.insert(QLatin1String("Log4Qt::MainThreadAppender"), create_mainthread_appender);
+    mAppenderRegistry.insert(QStringLiteral("org.apache.log4j.MainThreadAppender"), create_mainthread_appender);
+    mAppenderRegistry.insert(QStringLiteral("Log4Qt::MainThreadAppender"), create_mainthread_appender);
 
-    mAppenderRegistry.insert(QLatin1String("org.apache.log4j.SystemLogAppender"), create_systemlog_appender);
-    mAppenderRegistry.insert(QLatin1String("Log4Qt::SystemLogAppender"), create_systemlog_appender);
+    mAppenderRegistry.insert(QStringLiteral("org.apache.log4j.SystemLogAppender"), create_systemlog_appender);
+    mAppenderRegistry.insert(QStringLiteral("Log4Qt::SystemLogAppender"), create_systemlog_appender);
 
-    mAppenderRegistry.insert(QLatin1String("org.apache.log4j.BinaryFileAppender"), create_binaryfile_appender);
-    mAppenderRegistry.insert(QLatin1String("Log4Qt::BinaryFileAppender"), create_binaryfile_appender);
+    mAppenderRegistry.insert(QStringLiteral("org.apache.log4j.BinaryFileAppender"), create_binaryfile_appender);
+    mAppenderRegistry.insert(QStringLiteral("Log4Qt::BinaryFileAppender"), create_binaryfile_appender);
 
-    mAppenderRegistry.insert(QLatin1String("org.apache.log4j.RollingBinaryFileAppender"), create_rollingbinaryfile_appender);
-    mAppenderRegistry.insert(QLatin1String("Log4Qt::RollingBinaryFileAppender"), create_rollingbinaryfile_appender);
+    mAppenderRegistry.insert(QStringLiteral("org.apache.log4j.RollingBinaryFileAppender"), create_rollingbinaryfile_appender);
+    mAppenderRegistry.insert(QStringLiteral("Log4Qt::RollingBinaryFileAppender"), create_rollingbinaryfile_appender);
 
-    mAppenderRegistry.insert(QLatin1String("org.apache.log4j.DailyFileAppender"), create_dailyrollingfile_appender);
-    mAppenderRegistry.insert(QLatin1String("Log4Qt::DailyFileAppender"), create_dailyrollingfile_appender);
+    mAppenderRegistry.insert(QStringLiteral("org.apache.log4j.DailyFileAppender"), create_dailyrollingfile_appender);
+    mAppenderRegistry.insert(QStringLiteral("Log4Qt::DailyFileAppender"), create_dailyrollingfile_appender);
 #ifdef Q_OS_WIN
-    mAppenderRegistry.insert(QLatin1String("org.apache.log4j.WDCAppender"), create_wdc_appender);
-    mAppenderRegistry.insert(QLatin1String("Log4Qt::WDCAppender"), create_wdc_appender);
+    mAppenderRegistry.insert(QStringLiteral("org.apache.log4j.WDCAppender"), create_wdc_appender);
+    mAppenderRegistry.insert(QStringLiteral("Log4Qt::WDCAppender"), create_wdc_appender);
 #endif
 }
 
 
 void Factory::registerDefaultFilters()
 {
-    mFilterRegistry.insert(QLatin1String("org.apache.log4j.varia.DenyAllFilter"), create_deny_all_filter);
-    mFilterRegistry.insert(QLatin1String("Log4Qt::DenyAllFilter"), create_deny_all_filter);
-    mFilterRegistry.insert(QLatin1String("org.apache.log4j.varia.LevelMatchFilter"), create_level_match_filter);
-    mFilterRegistry.insert(QLatin1String("Log4Qt::LevelMatchFilter"), create_level_match_filter);
-    mFilterRegistry.insert(QLatin1String("org.apache.log4j.varia.LevelRangeFilter"), create_level_range_filter);
-    mFilterRegistry.insert(QLatin1String("Log4Qt::LevelRangeFilter"), create_level_range_filter);
-    mFilterRegistry.insert(QLatin1String("org.apache.log4j.varia.StringMatchFilter"), create_string_match_filter);
-    mFilterRegistry.insert(QLatin1String("Log4Qt::StringMatchFilter"), create_string_match_filter);
-    mFilterRegistry.insert(QLatin1String("org.apache.log4j.varia.BinaryEventFilter"), create_binaryevent_filter);
-    mFilterRegistry.insert(QLatin1String("Log4Qt::BinaryEventFilter"), create_binaryevent_filter);
+    mFilterRegistry.insert(QStringLiteral("org.apache.log4j.varia.DenyAllFilter"), create_deny_all_filter);
+    mFilterRegistry.insert(QStringLiteral("Log4Qt::DenyAllFilter"), create_deny_all_filter);
+    mFilterRegistry.insert(QStringLiteral("org.apache.log4j.varia.LevelMatchFilter"), create_level_match_filter);
+    mFilterRegistry.insert(QStringLiteral("Log4Qt::LevelMatchFilter"), create_level_match_filter);
+    mFilterRegistry.insert(QStringLiteral("org.apache.log4j.varia.LevelRangeFilter"), create_level_range_filter);
+    mFilterRegistry.insert(QStringLiteral("Log4Qt::LevelRangeFilter"), create_level_range_filter);
+    mFilterRegistry.insert(QStringLiteral("org.apache.log4j.varia.StringMatchFilter"), create_string_match_filter);
+    mFilterRegistry.insert(QStringLiteral("Log4Qt::StringMatchFilter"), create_string_match_filter);
+    mFilterRegistry.insert(QStringLiteral("org.apache.log4j.varia.BinaryEventFilter"), create_binaryevent_filter);
+    mFilterRegistry.insert(QStringLiteral("Log4Qt::BinaryEventFilter"), create_binaryevent_filter);
 }
 
 
 void Factory::registerDefaultLayouts()
 {
-    mLayoutRegistry.insert(QLatin1String("org.apache.log4j.PatternLayout"), create_pattern_layout);
-    mLayoutRegistry.insert(QLatin1String("Log4Qt::PatternLayout"), create_pattern_layout);
-    mLayoutRegistry.insert(QLatin1String("org.apache.log4j.SimpleLayout"), create_simple_layout);
-    mLayoutRegistry.insert(QLatin1String("Log4Qt::SimpleLayout"), create_simple_layout);
-    mLayoutRegistry.insert(QLatin1String("org.apache.log4j.TTCCLayout"), create_ttcc_layout);
-    mLayoutRegistry.insert(QLatin1String("Log4Qt::TTCCLayout"), create_ttcc_layout);
+    mLayoutRegistry.insert(QStringLiteral("org.apache.log4j.PatternLayout"), create_pattern_layout);
+    mLayoutRegistry.insert(QStringLiteral("Log4Qt::PatternLayout"), create_pattern_layout);
+    mLayoutRegistry.insert(QStringLiteral("org.apache.log4j.SimpleLayout"), create_simple_layout);
+    mLayoutRegistry.insert(QStringLiteral("Log4Qt::SimpleLayout"), create_simple_layout);
+    mLayoutRegistry.insert(QStringLiteral("org.apache.log4j.TTCCLayout"), create_ttcc_layout);
+    mLayoutRegistry.insert(QStringLiteral("Log4Qt::TTCCLayout"), create_ttcc_layout);
 
-    mLayoutRegistry.insert(QLatin1String("org.apache.log4j.SimpleTimeLayout"), create_simple_time_layout);
-    mLayoutRegistry.insert(QLatin1String("Log4Qt::SimpleTimeLayout"), create_simple_time_layout);
+    mLayoutRegistry.insert(QStringLiteral("org.apache.log4j.SimpleTimeLayout"), create_simple_time_layout);
+    mLayoutRegistry.insert(QStringLiteral("Log4Qt::SimpleTimeLayout"), create_simple_time_layout);
 
 #if defined(QT_SQL_LIB)
-    mLayoutRegistry.insert(QLatin1String("org.apache.log4j.DatabaseLayout"), create_database_layout);
-    mLayoutRegistry.insert(QLatin1String("Log4Qt::DatabaseLayout"), create_database_layout);
+    mLayoutRegistry.insert(QStringLiteral("org.apache.log4j.DatabaseLayout"), create_database_layout);
+    mLayoutRegistry.insert(QStringLiteral("Log4Qt::DatabaseLayout"), create_database_layout);
 #endif //#ifdef (QT_SQL_LIB)
 
-    mLayoutRegistry.insert(QLatin1String("org.apache.log4j.BinaryLayout"), create_binary_layout);
-    mLayoutRegistry.insert(QLatin1String("Log4Qt::BinaryLayout"), create_binary_layout);
+    mLayoutRegistry.insert(QStringLiteral("org.apache.log4j.BinaryLayout"), create_binary_layout);
+    mLayoutRegistry.insert(QStringLiteral("Log4Qt::BinaryLayout"), create_binary_layout);
 
-    mLayoutRegistry.insert(QLatin1String("org.apache.log4j.BinaryToTextLayout"), create_binarytotext_layout);
-    mLayoutRegistry.insert(QLatin1String("Log4Qt::BinaryToTextLayout"), create_binarytotext_layout);
+    mLayoutRegistry.insert(QStringLiteral("org.apache.log4j.BinaryToTextLayout"), create_binarytotext_layout);
+    mLayoutRegistry.insert(QStringLiteral("Log4Qt::BinaryToTextLayout"), create_binarytotext_layout);
 
-    mLayoutRegistry.insert(QLatin1String("org.apache.log4j.XMLLayout"), create_xml_layout);
-    mLayoutRegistry.insert(QLatin1String("Log4Qt::XMLLayout"), create_xml_layout);
+    mLayoutRegistry.insert(QStringLiteral("org.apache.log4j.XMLLayout"), create_xml_layout);
+    mLayoutRegistry.insert(QStringLiteral("Log4Qt::XMLLayout"), create_xml_layout);
 }
 
 
-bool Factory::validateObjectProperty(QMetaProperty &rMetaProperty,
-                                     const QString &rProperty,
-                                     QObject *pObject)
+bool Factory::validateObjectProperty(QMetaProperty &metaProperty,
+                                     const QString &property,
+                                     QObject *object)
 {
     // Validate:
     // - No null object pointer
@@ -543,58 +541,58 @@ bool Factory::validateObjectProperty(QMetaProperty &rMetaProperty,
     // - Property is readable
     // - Property is writable
 
-    const char *p_context = "Log4Qt::Factory";
+    const char *context = "Log4Qt::Factory";
     LogError e = LOG4QT_ERROR(QT_TR_NOOP("Unable to set property value on object"),
                               CONFIGURATOR_PROPERTY_ERROR,
-                              p_context);
+                              context);
 
-    if (!pObject)
+    if (object == nullptr)
     {
         LogError ce = LOG4QT_ERROR(QT_TR_NOOP("Invalid null object pointer"),
                                    0,
-                                   p_context);
+                                   context);
         e.addCausingError(ce);
         logger()->error(e);
         return false;
     }
-    if (rProperty.isEmpty())
+    if (property.isEmpty())
     {
         LogError ce = LOG4QT_ERROR(QT_TR_NOOP("Invalid empty property name"),
                                    0,
-                                   p_context);
+                                   context);
         e.addCausingError(ce);
         logger()->error(e);
         return false;
     }
-    const QMetaObject *p_meta_object = pObject->metaObject();
-    QString property = rProperty;
-    int i = p_meta_object->indexOfProperty(property.toLatin1().constData());
+    const QMetaObject *p_meta_object = object->metaObject();
+    QString propertyString = property;
+    int i = p_meta_object->indexOfProperty(propertyString.toLatin1().constData());
     if (i < 0)
     {
         // Try name with lower case first character. Java properties names
         // start upper case
-        property[0] = property[0].toLower();
-        i = p_meta_object->indexOfProperty(property.toLatin1().constData());
+        propertyString[0] = propertyString[0].toLower();
+        i = p_meta_object->indexOfProperty(propertyString.toLatin1().constData());
         if (i < 0)
         {
             LogError ce = LOG4QT_ERROR(QT_TR_NOOP("Property '%1' does not exist in class '%2'"),
                                        0,
-                                       p_context);
-            ce << property
-               << QString::fromLatin1(pObject->metaObject()->className());
+                                       context);
+            ce << propertyString
+               << QString::fromLatin1(object->metaObject()->className());
             e.addCausingError(ce);
             logger()->error(e);
             return false;
         }
     }
-    rMetaProperty = p_meta_object->property(i);
-    if (!rMetaProperty.isWritable())
+    metaProperty = p_meta_object->property(i);
+    if (!metaProperty.isWritable())
     {
         LogError ce = LOG4QT_ERROR(QT_TR_NOOP("Property '%1' is not writable in class '%2'"),
                                    0,
-                                   p_context);
+                                   context);
         ce << property
-           << QString::fromLatin1(pObject->metaObject()->className());
+           << QString::fromLatin1(object->metaObject()->className());
         e.addCausingError(ce);
         logger()->error(e);
         return false;

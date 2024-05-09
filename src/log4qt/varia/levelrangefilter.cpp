@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        levelrangefilter.cpp
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +18,6 @@
  *
  ******************************************************************************/
 
-
 #include "varia/levelrangefilter.h"
 
 #include "loggingevent.h"
@@ -30,26 +25,25 @@
 namespace Log4Qt
 {
 
-LevelRangeFilter::LevelRangeFilter(QObject *pParent) :
-    Filter(pParent),
+LevelRangeFilter::LevelRangeFilter(QObject *parent) :
+    Filter(parent),
     mAcceptOnMatch(true),
     mLevelMin(Level::NULL_INT),
     mLevelMax(Level::OFF_INT)
 {}
 
 
-Filter::Decision LevelRangeFilter::decide(const LoggingEvent &rEvent) const
+Filter::Decision LevelRangeFilter::decide(const LoggingEvent &event) const
 {
-    if (rEvent.level() < mLevelMin)
+    if (event.level() < mLevelMin)
         return Filter::DENY;
 
-    if (rEvent.level() > mLevelMax)
+    if (event.level() > mLevelMax)
         return Filter::DENY;
 
     if (mAcceptOnMatch)
         return Filter::ACCEPT;
-    else
-        return Filter::NEUTRAL;
+    return Filter::NEUTRAL;
 }
 
 } // namespace Log4Qt

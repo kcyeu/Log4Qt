@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        loggingevent.cpp
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- *****************************************************************************/
+ ******************************************************************************/
 
 #include "loggingevent.h"
 
@@ -39,50 +35,47 @@
 namespace Log4Qt
 {
 
-Q_GLOBAL_STATIC(QMutex, sequence_guard)
-
 LoggingEvent::LoggingEvent() :
     QEvent(eventId),
     mLevel(Level::NULL_INT),
-    mpLogger(nullptr),
+    mLogger(nullptr),
     mMessage(),
     mNdc(NDC::peek()),
     mProperties(MDC::context()),
     mSequenceNumber(nextSequenceNumber()),
     mThreadName(),
-    mTimeStamp(QDateTime::currentDateTime().toMSecsSinceEpoch()),
-    mContext()
+    mTimeStamp(QDateTime::currentDateTime().toMSecsSinceEpoch())
 {
     setThreadNameToCurrent();
 }
 
+LoggingEvent::~LoggingEvent() = default;
 
-LoggingEvent::LoggingEvent(const Logger *pLogger,
+LoggingEvent::LoggingEvent(const Logger *logger,
                            Level level,
-                           const QString &rMessage) :
+                           const QString &message) :
     QEvent(eventId),
     mLevel(level),
-    mpLogger(pLogger),
-    mMessage(rMessage),
+    mLogger(logger),
+    mMessage(message),
     mNdc(NDC::peek()),
     mProperties(MDC::context()),
     mSequenceNumber(nextSequenceNumber()),
     mThreadName(),
-    mTimeStamp(QDateTime::currentDateTime().toMSecsSinceEpoch()),
-    mContext()
+    mTimeStamp(QDateTime::currentDateTime().toMSecsSinceEpoch())
 {
     setThreadNameToCurrent();
 }
 
-LoggingEvent::LoggingEvent(const Logger *pLogger,
+LoggingEvent::LoggingEvent(const Logger *logger,
                            Level level,
-                           const QString &rMessage,
+                           const QString &message,
                            const MessageContext &context,
                            const QString &categoryName) :
        QEvent(eventId),
        mLevel(level),
-       mpLogger(pLogger),
-       mMessage(rMessage),
+       mLogger(logger),
+       mMessage(message),
        mNdc(NDC::peek()),
        mProperties(MDC::context()),
        mSequenceNumber(nextSequenceNumber()),
@@ -95,60 +88,58 @@ LoggingEvent::LoggingEvent(const Logger *pLogger,
 }
 
 
-LoggingEvent::LoggingEvent(const Logger *pLogger,
+LoggingEvent::LoggingEvent(const Logger *logger,
                            Level level,
-                           const QString &rMessage,
+                           const QString &message,
                            qint64 timeStamp) :
     QEvent(eventId),
     mLevel(level),
-    mpLogger(pLogger),
-    mMessage(rMessage),
+    mLogger(logger),
+    mMessage(message),
     mNdc(NDC::peek()),
     mProperties(MDC::context()),
     mSequenceNumber(nextSequenceNumber()),
     mThreadName(),
-    mTimeStamp(timeStamp),
-    mContext()
+    mTimeStamp(timeStamp)
 {
     setThreadNameToCurrent();
 }
 
 
-LoggingEvent::LoggingEvent(const Logger *pLogger,
+LoggingEvent::LoggingEvent(const Logger *logger,
                            Level level,
-                           const QString &rMessage,
-                           const QString &rNdc,
-                           const QHash<QString, QString> &rProperties,
-                           const QString &rThreadName,
+                           const QString &message,
+                           const QString &ndc,
+                           const QHash<QString, QString> &properties,
+                           const QString &threadName,
                            qint64 timeStamp) :
     QEvent(eventId),
     mLevel(level),
-    mpLogger(pLogger),
-    mMessage(rMessage),
-    mNdc(rNdc),
-    mProperties(rProperties),
+    mLogger(logger),
+    mMessage(message),
+    mNdc(ndc),
+    mProperties(properties),
     mSequenceNumber(nextSequenceNumber()),
-    mThreadName(rThreadName),
-    mTimeStamp(timeStamp),
-    mContext()
+    mThreadName(threadName),
+    mTimeStamp(timeStamp)
 {
 }
 
-LoggingEvent::LoggingEvent(const Logger *pLogger,
+LoggingEvent::LoggingEvent(const Logger *logger,
                            Level level,
-                           const QString &rMessage,
-                           const QString &rNdc,
-                           const QHash<QString, QString> &rProperties,
+                           const QString &message,
+                           const QString &ndc,
+                           const QHash<QString, QString> &properties,
                            qint64 timeStamp,
                            const MessageContext &context,
                            const QString &categoryName)
     :
        QEvent(eventId),
        mLevel(level),
-       mpLogger(pLogger),
-       mMessage(rMessage),
-       mNdc(rNdc),
-       mProperties(rProperties),
+       mLogger(logger),
+       mMessage(message),
+       mNdc(ndc),
+       mProperties(properties),
        mSequenceNumber(nextSequenceNumber()),
        mThreadName(),
        mTimeStamp(timeStamp),
@@ -158,40 +149,35 @@ LoggingEvent::LoggingEvent(const Logger *pLogger,
     setThreadNameToCurrent();
 }
 
-LoggingEvent::LoggingEvent(const Logger *pLogger,
+LoggingEvent::LoggingEvent(const Logger *logger,
                            Level level,
-                           const QString &rMessage,
-                           const QString &rNdc,
-                           const QHash<QString, QString> &rProperties,
-                           const QString &rThreadName,
+                           const QString &message,
+                           const QString &ndc,
+                           const QHash<QString, QString> &properties,
+                           const QString &threadName,
                            qint64 timeStamp,
                            const MessageContext &context,
                            const QString &categoryName)
     :
        QEvent(eventId),
        mLevel(level),
-       mpLogger(pLogger),
-       mMessage(rMessage),
-       mNdc(rNdc),
-       mProperties(rProperties),
+       mLogger(logger),
+       mMessage(message),
+       mNdc(ndc),
+       mProperties(properties),
        mSequenceNumber(nextSequenceNumber()),
-       mThreadName(rThreadName),
+       mThreadName(threadName),
        mTimeStamp(timeStamp),
        mContext(context),
        mCategoryName(categoryName)
 {
 }
 
-LoggingEvent::~LoggingEvent()
+QString LoggingEvent::loggename() const
 {
-}
-
-QString LoggingEvent::loggerName() const
-{
-    if (mpLogger)
-        return mpLogger->name();
-    else
-        return QString();
+    if (mLogger)
+        return mLogger->name();
+    return QString();
 }
 
 
@@ -203,8 +189,6 @@ QString LoggingEvent::toString() const
 
 qint64 LoggingEvent::sequenceCount()
 {
-    QMutexLocker locker(sequence_guard());
-
     return msSequenceCount;
 }
 
@@ -222,7 +206,7 @@ void LoggingEvent::setThreadNameToCurrent()
         mThreadName = QThread::currentThread()->objectName();
         // if object name is not set use thread function address for thread identification
         if (mThreadName.isEmpty())
-            mThreadName = QString("0x%1").arg(reinterpret_cast<quintptr>(QThread::currentThread()), QT_POINTER_SIZE * 2, 16, QChar('0'));
+            mThreadName = QStringLiteral("0x%1").arg(reinterpret_cast<quintptr>(QThread::currentThread()), QT_POINTER_SIZE * 2, 16, QChar('0'));
 
     }
 }
@@ -230,8 +214,6 @@ void LoggingEvent::setThreadNameToCurrent()
 
 qint64 LoggingEvent::nextSequenceNumber()
 {
-    QMutexLocker locker(sequence_guard());
-
     return ++msSequenceCount;
 }
 
@@ -255,63 +237,50 @@ void LoggingEvent::setCategoryName(const QString &categoryName)
     mCategoryName = categoryName;
 }
 
-qint64 LoggingEvent::msSequenceCount = 0;
+std::atomic<qint64> LoggingEvent::msSequenceCount {0};
 const QEvent::Type LoggingEvent::eventId = static_cast<QEvent::Type>(QEvent::registerEventType());
 
 #ifndef QT_NO_DATASTREAM
-QDataStream &operator<<(QDataStream &rStream, const LoggingEvent &rLoggingEvent)
+QDataStream &operator<<(QDataStream &out, const LoggingEvent &loggingEvent)
 {
-    QBuffer buffer;
-    buffer.open(QIODevice::WriteOnly);
-    QDataStream stream(&buffer);
-
     // version
     quint16 version = 0;
-    stream << version;
+    out << version;
     // version 0 data
-    stream << rLoggingEvent.mLevel
-           << rLoggingEvent.loggerName()
-           << rLoggingEvent.mMessage
-           << rLoggingEvent.mNdc
-           << rLoggingEvent.mProperties
-           << rLoggingEvent.mSequenceNumber
-           << rLoggingEvent.mThreadName
-           << rLoggingEvent.mTimeStamp;
+    out << loggingEvent.mLevel
+           << loggingEvent.loggename()
+           << loggingEvent.mMessage
+           << loggingEvent.mNdc
+           << loggingEvent.mProperties
+           << loggingEvent.mSequenceNumber
+           << loggingEvent.mThreadName
+           << loggingEvent.mTimeStamp;
 
-    buffer.close();
-    rStream << buffer.buffer();
-    return rStream;
+    return out;
 }
 
 
-QDataStream &operator>>(QDataStream &rStream, LoggingEvent &rLoggingEvent)
+QDataStream &operator>>(QDataStream &in, LoggingEvent &loggingEvent)
 {
-    QByteArray array;
-    rStream >> array;
-    QBuffer buffer(&array);
-    buffer.open(QIODevice::ReadOnly);
-    QDataStream stream(&buffer);
-
     // version
     quint16 version;
-    stream >> version;
+    in >> version;
     // Version 0 data
     QString logger;
-    stream >> rLoggingEvent.mLevel
-           >> logger
-           >> rLoggingEvent.mMessage
-           >> rLoggingEvent.mNdc
-           >> rLoggingEvent.mProperties
-           >> rLoggingEvent.mSequenceNumber
-           >> rLoggingEvent.mThreadName
-           >> rLoggingEvent.mTimeStamp;
+    in >> loggingEvent.mLevel
+       >> logger
+       >> loggingEvent.mMessage
+       >> loggingEvent.mNdc
+       >> loggingEvent.mProperties
+       >> loggingEvent.mSequenceNumber
+       >> loggingEvent.mThreadName
+       >> loggingEvent.mTimeStamp;
     if (logger.isEmpty())
-        rLoggingEvent.mpLogger = nullptr;
+        loggingEvent.mLogger = nullptr;
     else
-        rLoggingEvent.mpLogger = Logger::logger(logger);
+        loggingEvent.mLogger = Logger::logger(logger);
 
-    buffer.close();
-    return rStream;
+    return in;
 }
 #endif // QT_NO_DATASTREAM
 

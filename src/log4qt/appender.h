@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:
- * file:        appender.h
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- ********************************************************************************/
+ ******************************************************************************/
 
 #ifndef LOG4QT_APPENDER_H
 #define LOG4QT_APPENDER_H
 
 #include "layout.h"
+#include "log4qtdefs.h"
 #include "log4qtsharedptr.h"
 #include "spi/filter.h"
 #include "helpers/classlogger.h"
@@ -72,33 +69,32 @@ class LOG4QT_EXPORT Appender : public QObject
     Q_PROPERTY(bool requiresLayout READ requiresLayout)
 
 public:
-    Appender(QObject *pParent = nullptr);
+    Appender(QObject *parent = nullptr);
     virtual ~Appender();
 
     virtual FilterSharedPtr filter() const = 0;
     virtual QString name() const = 0;
     virtual LayoutSharedPtr layout() const = 0;
     virtual bool requiresLayout() const = 0;
-    virtual void setLayout(LayoutSharedPtr pLayout) = 0;
-    virtual void setName(const QString &rName) = 0;
+    virtual void setLayout(const LayoutSharedPtr &layout) = 0;
+    virtual void setName(const QString &name) = 0;
 
-    virtual void addFilter(FilterSharedPtr pFilter) = 0;
+    virtual void addFilter(const FilterSharedPtr &filter) = 0;
     virtual void clearFilters() = 0;
     virtual void close() = 0;
-    virtual void doAppend(const LoggingEvent &rEvent) = 0;
+    virtual void doAppend(const LoggingEvent &event) = 0;
 
 protected:
     /*!
      * Returns a pointer to a Logger named after of the object.
      *
-     * \sa Logger::logger(const char *pName)
+     * \sa Logger::logger()
      */
     Logger *logger() const;
 
 private:
-    Q_DISABLE_COPY(Appender)
+    Q_DISABLE_COPY_MOVE(Appender)
     mutable ClassLogger mLog4QtClassLogger;
-
 };
 
 using AppenderSharedPtr = Log4QtSharedPtr<Appender>;

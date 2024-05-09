@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        debugappender.cpp
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +23,7 @@
 #include "layout.h"
 #include "loggingevent.h"
 
-#if defined(Q_OS_WIN32)
+#if defined(Q_OS_WIN)
 #include <windows.h>
 #endif
 
@@ -36,33 +32,29 @@
 namespace Log4Qt
 {
 
-DebugAppender::DebugAppender(LayoutSharedPtr pLayout,
-                             QObject *pParent) :
-    AppenderSkeleton(pParent)
+DebugAppender::DebugAppender(const LayoutSharedPtr &layout,
+                             QObject *parent) :
+    AppenderSkeleton(true, layout, parent)
 {
-    setLayout(pLayout);
 }
-
 
 bool DebugAppender::requiresLayout() const
 {
     return true;
 }
 
-
-void DebugAppender::append(const LoggingEvent &rEvent)
+void DebugAppender::append(const LoggingEvent &event)
 {
     Q_ASSERT_X(layout(), "DebugAppender::append()", "Layout must not be null");
 
-    QString message(layout()->format(rEvent));
-#if defined(Q_OS_WIN32)
+    QString message(layout()->format(event));
+#if defined(Q_OS_WIN)
     OutputDebugStringW(message.toStdWString().c_str());
 #else
     std::cerr << message.toLocal8Bit().constData() << std::endl;
     std::cerr << std::flush;
 #endif
 }
-
 
 } // namspace Log4Qt
 

@@ -1,17 +1,8 @@
 /******************************************************************************
  *
- * package:
- * file:        hierarchy.cpp
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * changes:     Sep 2008, Martin Heinrich:
- *              - Fixed problem in Qt 4.4 where QReadWriteLock is by default
- *                non-recursive.
- *
- *
- * Copyright 2007 - 2008 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,41 +31,29 @@ LOG4QT_DECLARE_STATIC_LOGGER(static_logger, ::LoggerRepository)
 
 Hierarchy::Hierarchy() :
     mObjectGuard(QReadWriteLock::Recursive),
-    mLoggers(),
     mThreshold(Level::NULL_INT),
-    mpRootLogger(logger(QString()))
+    mRootLogger(logger(QString()))
 {
-    // Store root logger to allow rootLogger() to be const
 }
-
 
 Hierarchy::~Hierarchy()
 {
-    static_logger()->warn("Unexpected destruction of Hierarchy");
-
-    // QWriteLocker locker(&mObjectGuard);
-    //
-    // resetConfiguration();
-    // clear();
-    // delete mpRootLogger;
+    static_logger()->warn(QStringLiteral("Unexpected destruction of Hierarchy"));
 }
 
-
-bool Hierarchy::exists(const QString &rName) const
+bool Hierarchy::exists(const QString &name) const
 {
     QReadLocker locker(&mObjectGuard);
 
-    return mLoggers.contains(rName);
+    return mLoggers.contains(name);
 }
 
-
-Logger *Hierarchy::logger(const QString &rName)
+Logger *Hierarchy::logger(const QString &name)
 {
     QWriteLocker locker(&mObjectGuard);
 
-    return createLogger(rName);
+    return createLogger(name);
 }
-
 
 QList<Logger *> Hierarchy::loggers() const
 {
@@ -83,12 +62,10 @@ QList<Logger *> Hierarchy::loggers() const
     return mLoggers.values();
 }
 
-
-void Hierarchy::setThreshold(const QString &rThreshold)
+void Hierarchy::setThreshold(const QString &threshold)
 {
-    setThreshold(Level::fromString(rThreshold));
+    setThreshold(Level::fromString(threshold));
 }
-
 
 void Hierarchy::resetConfiguration()
 {
@@ -98,10 +75,10 @@ void Hierarchy::resetConfiguration()
     // Leave log, qt and root logger to the last to allow debugging of shutdown.
 
     Logger *p_logging_logger = logger(QLatin1String(""));
-    Logger *p_qt_logger = logger(QLatin1String("Qt"));
+    Logger *p_qt_logger = logger(QStringLiteral("Qt"));
     Logger *p_root_logger = rootLogger();
 
-    for (auto p_logger : mLoggers)
+    for (auto &&p_logger : qAsConst(mLoggers))
     {
         if ((p_logger == p_logging_logger) || (p_logger == p_qt_logger) || (p_logger == p_root_logger))
             continue;
@@ -112,54 +89,51 @@ void Hierarchy::resetConfiguration()
     resetLogger(p_root_logger, Level::DEBUG_INT);
 }
 
-
 void Hierarchy::shutdown()
 {
-    static_logger()->debug("Shutting down Hierarchy");
+    static_logger()->debug(QStringLiteral("Shutting down Hierarchy"));
     resetConfiguration();
 }
 
 Logger *Hierarchy::createLogger(const QString &orgName)
 {
-    static const char binaryIndicator[] = "@@binary@@";
+    static const QLatin1String binaryIndicator = QLatin1String("@@binary@@");
+    static const QLatin1String name_separator = QLatin1String("::");
 
-
-    QString rName(OptionConverter::classNameJavaToCpp(orgName));
+    QString name(OptionConverter::classNameJavaToCpp(orgName));
     bool needBinaryLogger = orgName.contains(binaryIndicator);
 
     if (needBinaryLogger)
-        rName.remove(binaryIndicator);
+        name.remove(binaryIndicator);
 
-    const QString name_separator = QLatin1String("::");
+    Logger *logger = mLoggers.value(name, nullptr);
+    if (logger != nullptr)
+        return logger;
 
-    Logger *p_logger = mLoggers.value(rName, nullptr);
-    if (p_logger != nullptr)
-        return p_logger;
-
-    if (rName.isEmpty())
+    if (name.isEmpty())
     {
-        p_logger = new Logger(this, Level::DEBUG_INT, QLatin1String("root"), nullptr);
-        mLoggers.insert(QString(), p_logger);
-        return p_logger;
+        logger = new Logger(this, Level::DEBUG_INT, QStringLiteral("root"), nullptr);
+        mLoggers.insert(QString(), logger);
+        return logger;
     }
     QString parent_name;
-    int index = rName.lastIndexOf(name_separator);
+    int index = name.lastIndexOf(name_separator);
     if (index >= 0)
-        parent_name = rName.left(index);
+        parent_name = name.left(index);
 
     if (needBinaryLogger)
-        p_logger = new BinaryLogger(this, Level::NULL_INT, rName, createLogger(parent_name));
+        logger = new BinaryLogger(this, Level::NULL_INT, name, createLogger(parent_name));
     else
-        p_logger = new Logger(this, Level::NULL_INT, rName, createLogger(parent_name));
-    mLoggers.insert(rName, p_logger);
-    return p_logger;
+        logger = new Logger(this, Level::NULL_INT, name, createLogger(parent_name));
+    mLoggers.insert(name, logger);
+    return logger;
 }
 
-void Hierarchy::resetLogger(Logger *pLogger, Level level) const
+void Hierarchy::resetLogger(Logger *logger, Level level) const
 {
-    pLogger->removeAllAppenders();
-    pLogger->setAdditivity(true);
-    pLogger->setLevel(level);
+    logger->removeAllAppenders();
+    logger->setAdditivity(true);
+    logger->setLevel(level);
 }
 
 } // namespace Log4Qt

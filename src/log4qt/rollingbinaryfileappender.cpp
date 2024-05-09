@@ -1,3 +1,23 @@
+/******************************************************************************
+ *
+ * This file is part of Log4Qt library.
+ *
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
+
 #include "rollingbinaryfileappender.h"
 
 #include "layout.h"
@@ -24,7 +44,7 @@ void RollingBinaryFileAppender::activateOptions()
 
     computeFrequency();
     if (!mActiveDatePattern.isEmpty())
-        computeRollOverTime();
+        computeRollOvetime();
 
     BinaryFileAppender::activateOptions();
 }
@@ -57,24 +77,23 @@ void RollingBinaryFileAppender::computeFrequency()
     }
 
     mActiveDatePattern = mDatePattern;
-    logger()->trace("Frequency set to %2 using date pattern %1", mActiveDatePattern, frequencyToString());
+    logger()->trace(QStringLiteral("Frequency set to %2 using date pattern %1"), mActiveDatePattern, frequencyToString());
 }
 
-
-void RollingBinaryFileAppender::append(const LoggingEvent &rEvent)
+void RollingBinaryFileAppender::append(const LoggingEvent &event)
 {
-    if (checkForTimeRollOver())
-        rollOverTime();
+    if (checkFotimeRollOver())
+        rollOvetime();
 
-    BinaryFileAppender::append(rEvent);
+    BinaryFileAppender::append(event);
 
     if (checkForSizeRollOver())
         rollOverSize();
 }
 
-bool RollingBinaryFileAppender::checkForTimeRollOver() const
+bool RollingBinaryFileAppender::checkFotimeRollOver() const
 {
-    return QDateTime::currentDateTime() > mRollOverTime;
+    return QDateTime::currentDateTime() > mRollOvetime;
 }
 
 bool RollingBinaryFileAppender::checkForSizeRollOver() const
@@ -84,7 +103,7 @@ bool RollingBinaryFileAppender::checkForSizeRollOver() const
 
 void RollingBinaryFileAppender::rollOverSize()
 {
-    logger()->debug("Rolling over with maxBackupIndex = %1", mMaxBackupIndex);
+    logger()->debug(QStringLiteral("Rolling over with maxBackupIndex = %1"), mMaxBackupIndex);
 
     // close current file first
     closeFile();
@@ -111,7 +130,7 @@ void RollingBinaryFileAppender::rollOverSize()
 
     // Now renmae the current file from file.log --> file.log.1
     f.setFileName(file());
-    target_file_name = file() + QLatin1String(".1");
+    target_file_name = file() + QStringLiteral(".1");
     if (!renameFile(f, target_file_name))
         return;
 
@@ -119,12 +138,12 @@ void RollingBinaryFileAppender::rollOverSize()
     openFile();
 }
 
-void RollingBinaryFileAppender::rollOverTime()
+void RollingBinaryFileAppender::rollOvetime()
 {
     Q_ASSERT_X(!mActiveDatePattern.isEmpty(), "DailyRollingFileAppender::rollOver()", "No active date pattern");
 
     QString roll_over_suffix = mRollOverSuffix;
-    computeRollOverTime();
+    computeRollOvetime();
     if (roll_over_suffix == mRollOverSuffix)
         return;
 
@@ -145,22 +164,22 @@ void RollingBinaryFileAppender::setDatePattern(DatePattern datePattern)
     switch (datePattern)
     {
     case MINUTELY_ROLLOVER:
-        setDatePattern(QLatin1String("'.'yyyy-MM-dd-hh-mm"));
+        setDatePattern(QStringLiteral("'.'yyyy-MM-dd-hh-mm"));
         break;
     case HOURLY_ROLLOVER:
-        setDatePattern(QLatin1String("'.'yyyy-MM-dd-hh"));
+        setDatePattern(QStringLiteral("'.'yyyy-MM-dd-hh"));
         break;
     case HALFDAILY_ROLLOVER:
-        setDatePattern(QLatin1String("'.'yyyy-MM-dd-a"));
+        setDatePattern(QStringLiteral("'.'yyyy-MM-dd-a"));
         break;
     case DAILY_ROLLOVER:
-        setDatePattern(QLatin1String("'.'yyyy-MM-dd"));
+        setDatePattern(QStringLiteral("'.'yyyy-MM-dd"));
         break;
     case WEEKLY_ROLLOVER:
-        setDatePattern(QLatin1String("'.'yyyy-ww"));
+        setDatePattern(QStringLiteral("'.'yyyy-ww"));
         break;
     case MONTHLY_ROLLOVER:
-        setDatePattern(QLatin1String("'.'yyyy-MM"));
+        setDatePattern(QStringLiteral("'.'yyyy-MM"));
         break;
     default:
         Q_ASSERT_X(false, "BinaryFileAppender::setDatePattern()", "Invalid datePattern constant");
@@ -169,9 +188,9 @@ void RollingBinaryFileAppender::setDatePattern(DatePattern datePattern)
     };
 }
 
-void RollingBinaryFileAppender::computeRollOverTime()
+void RollingBinaryFileAppender::computeRollOvetime()
 {
-    Q_ASSERT_X(!mActiveDatePattern.isEmpty(), "BinaryFileAppender::computeRollOverTime()", "No active date pattern");
+    Q_ASSERT_X(!mActiveDatePattern.isEmpty(), "BinaryFileAppender::computeRollOvetime()", "No active date pattern");
 
     QDateTime now = QDateTime::currentDateTime();
     QDate now_date = now.date();
@@ -182,11 +201,11 @@ void RollingBinaryFileAppender::computeRollOverTime()
     {
     case MINUTELY_ROLLOVER:
         start = QDateTime(now_date, QTime(now_time.hour(), now_time.minute(), 0, 0));
-        mRollOverTime = start.addSecs(60);
+        mRollOvetime = start.addSecs(60);
         break;
     case HOURLY_ROLLOVER:
         start = QDateTime(now_date, QTime(now_time.hour(), 0, 0, 0));
-        mRollOverTime = start.addSecs(60 * 60);
+        mRollOvetime = start.addSecs(60 * 60);
         break;
     case HALFDAILY_ROLLOVER:
     {
@@ -196,12 +215,12 @@ void RollingBinaryFileAppender::computeRollOverTime()
         else
             hour = 0;
         start = QDateTime(now_date, QTime(hour, 0, 0, 0));
-        mRollOverTime = start.addSecs(60 * 60 * 12);
+        mRollOvetime = start.addSecs(60 * 60 * 12);
     }
     break;
     case DAILY_ROLLOVER:
         start = QDateTime(now_date, QTime(0, 0, 0, 0));
-        mRollOverTime = start.addDays(1);
+        mRollOvetime = start.addDays(1);
         break;
     case WEEKLY_ROLLOVER:
     {
@@ -211,29 +230,29 @@ void RollingBinaryFileAppender::computeRollOverTime()
         if (day == Qt::Sunday)
             day = 0;
         start = QDateTime(now_date, QTime(0, 0, 0, 0)).addDays(-1 * day);
-        mRollOverTime = start.addDays(7);
+        mRollOvetime = start.addDays(7);
     }
     break;
     case MONTHLY_ROLLOVER:
         start = QDateTime(QDate(now_date.year(), now_date.month(), 1), QTime(0, 0, 0, 0));
-        mRollOverTime = start.addMonths(1);
+        mRollOvetime = start.addMonths(1);
         break;
     default:
         Q_ASSERT_X(false, "BinaryFileAppender::computeInterval()", "Invalid datePattern constant");
-        mRollOverTime = QDateTime::fromTime_t(0);
+        mRollOvetime = QDateTime::fromSecsSinceEpoch(0);
         break;
     }
 
     mRollOverSuffix = static_cast<DateTime>(start).toString(mActiveDatePattern);
     Q_ASSERT_X(static_cast<DateTime>(now).toString(mActiveDatePattern) == mRollOverSuffix,
-               "BinaryFileAppender::computeRollOverTime()", "File name changes within interval");
-    Q_ASSERT_X(mRollOverSuffix != static_cast<DateTime>(mRollOverTime).toString(mActiveDatePattern),
-               "BinaryFileAppender::computeRollOverTime()", "File name does not change with rollover");
+               "BinaryFileAppender::computeRollOvetime()", "File name changes within interval");
+    Q_ASSERT_X(mRollOverSuffix != static_cast<DateTime>(mRollOvetime).toString(mActiveDatePattern),
+               "BinaryFileAppender::computeRollOvetime()", "File name does not change with rollover");
 
-    logger()->trace("Computing roll over time from %1: The interval start time is %2. The roll over time is %3",
+    logger()->trace(QStringLiteral("Computing roll over time from %1: The interval start time is %2. The roll over time is %3"),
                     now.toString(),
                     start.toString(),
-                    mRollOverTime.toString());
+                    mRollOvetime.toString());
 }
 
 QString RollingBinaryFileAppender::frequencyToString() const

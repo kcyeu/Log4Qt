@@ -3,8 +3,7 @@ Log4Qt - Logging for the Qt cross-platform application framework
 
 Continuous Integration
 ----------------------
-
-Travis CI (Linux) [![Build Status](https://travis-ci.org/MEONMedical/Log4Qt.svg?branch=master)](https://travis-ci.org/MEONMedical/Log4Qt)
+Github actions CMake Ubuntu [![CMake Ubuntu build and test](https://github.com/MEONMedical/Log4Qt/actions/workflows/cmake-ubuntu.yml/badge.svg)](https://github.com/MEONMedical/Log4Qt/actions/workflows/cmake-ubuntu.yml)
 
 Appveyor CI (Windows) [![Build status](https://ci.appveyor.com/api/projects/status/yhlqvbqeooy7ds2l?svg=true)](https://ci.appveyor.com/project/MeonMedical/log4qt)
 
@@ -38,7 +37,8 @@ Additional features
 
 Requirements
 ------------
-* Minimum Qt version required Qt5.6 (for support of Qt versions down to 5.3 use branch 1.4 or the lates 1.4.x release)
+* Minimum Qt version required Qt5.12 (for support of Qt versions down to 5.3 use branch 1.4 or the lates 1.4.x release
+  or for support of Qt versions down to 5.7 use branch 1.5 or the lates 1.5.x release)
 * C++11 feature required (minimum compiler version MSVC14, GCC 4.8 or CLANG 3.3)
 
 License

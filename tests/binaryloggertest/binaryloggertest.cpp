@@ -1,4 +1,4 @@
-#include <QtTest/QtTest>
+#include <QtTest/QTest>
 
 #include "testappender.h"
 
@@ -24,6 +24,7 @@
 #include "elementsinarray.h"
 
 #include <QDataStream>
+#include <QTemporaryFile>
 
 const auto loggingLevel = Log4Qt::Level::ALL_INT; // set to OFF_INT to enable logging to the console;
 static const char binLogger[] = "binlogger";
@@ -39,7 +40,7 @@ public:
     {
     }
 
-private slots:
+private Q_SLOTS:
     void initTestCase();
     void cleanupTestCase();
     void init();
@@ -83,21 +84,21 @@ private:
         QScopedPointer<QDataStream> pds;
         QPointer<Log4Qt::BinaryWriterAppender> appender;
     } mAppenderData[3];
-    QMap<QString, int> mLoggerNameToAppenderDataIndex;
+    QMap<QString, int> mLoggenameToAppenderDataIndex;
 
     AppenderData &getAppenderDataFromLogger(Log4Qt::Logger *plogger)
     {
-        auto loggerName = plogger->name();
+        auto loggename = plogger->name();
 
-        if (!mLoggerNameToAppenderDataIndex.contains(loggerName))
-            mLoggerNameToAppenderDataIndex.insert(loggerName, mLoggerNameToAppenderDataIndex.size());
+        if (!mLoggenameToAppenderDataIndex.contains(loggename))
+            mLoggenameToAppenderDataIndex.insert(loggename, mLoggenameToAppenderDataIndex.size());
 
-        return mAppenderData[mLoggerNameToAppenderDataIndex[loggerName]];
+        return mAppenderData[mLoggenameToAppenderDataIndex[loggename]];
     }
 
-    void log(const QByteArray &data, const QString &loggerName = QString{})
+    void log(const QByteArray &data, const QString &loggename = QString{})
     {
-        auto mylogger = Log4Qt::Logger::logger(loggerName);
+        auto mylogger = Log4Qt::Logger::logger(loggename);
         Log4Qt::BinaryLoggingEvent event(mylogger, Log4Qt::Level::INFO_INT, data);
         mylogger->callAppenders(event);
     }
@@ -106,7 +107,7 @@ private:
     {
         auto &appenderData = getAppenderDataFromLogger(mylogger);
         auto writerAppender = new Log4Qt::BinaryWriterAppender(mylogger);
-        writerAppender->setName(QString{"Appender for '%1'"} .arg(mylogger->name()));
+        writerAppender->setName(QString{QStringLiteral("Appender for '%1'")} .arg(mylogger->name()));
         appenderData.setAppender(writerAppender);
         mylogger->addAppender(writerAppender);
         mylogger->setAdditivity(false);
@@ -127,19 +128,19 @@ void BinaryLoggerTest::initTestCase()
     Log4Qt::LogManager::setHandleQtMessages(true);
 
     Log4Qt::LayoutSharedPtr layout(new Log4Qt::TTCCLayout(rootLogger));
-    static_cast<Log4Qt::TTCCLayout *>(layout.data())->setDateFormat("dd.MM.yyyy hh:mm:ss.zzz");
+    static_cast<Log4Qt::TTCCLayout *>(layout.data())->setDateFormat(QStringLiteral("dd.MM.yyyy hh:mm:ss.zzz"));
     static_cast<Log4Qt::TTCCLayout *>(layout.data())->setContextPrinting(false);
 
     Log4Qt::LayoutSharedPtr binlayout(new Log4Qt::BinaryToTextLayout(layout, rootLogger));
 
-    Log4Qt::ConsoleAppender *consoleAppender = new Log4Qt::ConsoleAppender(rootLogger);
+    auto *consoleAppender = new Log4Qt::ConsoleAppender(rootLogger);
     consoleAppender->setLayout(binlayout);
     consoleAppender->setTarget(Log4Qt::ConsoleAppender::STDOUT_TARGET);
     consoleAppender->activateOptions();
 
     Log4Qt::Filter *denyall = new Log4Qt::DenyAllFilter;
     denyall->activateOptions();
-    Log4Qt::LevelRangeFilter *levelFilter = new Log4Qt::LevelRangeFilter(rootLogger);
+    auto *levelFilter = new Log4Qt::LevelRangeFilter(rootLogger);
     levelFilter->setNext(Log4Qt::FilterSharedPtr(denyall));
     levelFilter->setLevelMin(Log4Qt::Level::NULL_INT);
     levelFilter->setLevelMax(loggingLevel);
@@ -150,7 +151,7 @@ void BinaryLoggerTest::initTestCase()
     // add appender for tests
     Log4Qt::LayoutSharedPtr simpleLayout(new Log4Qt::SimpleLayout(rootLogger));
     Log4Qt::LayoutSharedPtr binlayout1(new Log4Qt::BinaryToTextLayout(simpleLayout, rootLogger));
-    TestAppender *appender = new TestAppender(rootLogger);
+    auto *appender = new TestAppender(rootLogger);
     appender->setLayout(binlayout1);
     appender->activateOptions();
     mAppender = appender;
@@ -172,7 +173,7 @@ void BinaryLoggerTest::cleanupTestCase()
     unitTestLogger()->removeAllAppenders();
     logger()->removeAllAppenders();
 
-    Log4Qt::Logger::rootLogger()->info("Unit test logger was shutdown.");
+    Log4Qt::Logger::rootLogger()->info(QStringLiteral("Unit test logger was shutdown."));
     Log4Qt::Logger::rootLogger()->removeAllAppenders();
     Log4Qt::Logger::rootLogger()->loggerRepository()->shutdown();
 }
@@ -189,7 +190,7 @@ void BinaryLoggerTest::testBinaryToTextLayout()
     auto list = mAppender->clearList();
     QCOMPARE(list.size(), 1);
     auto result = list.at(0);
-    QVERIFY(result.contains("12 bytes: 48 65 6c 6c 6f 20 77 6f 72 6c 64 21"));
+    QVERIFY(result.contains(QStringLiteral("12 bytes: 48 65 6c 6c 6f 20 77 6f 72 6c 64 21")));
 }
 
 void BinaryLoggerTest::testBinaryEventFilter()
@@ -198,7 +199,7 @@ void BinaryLoggerTest::testBinaryEventFilter()
     Log4Qt::Filter *denyall = new Log4Qt::DenyAllFilter;
     denyall->activateOptions();
 
-    Log4Qt::BinaryEventFilter *binfilter = new Log4Qt::BinaryEventFilter(blogger);
+    auto *binfilter = new Log4Qt::BinaryEventFilter(blogger);
 
     binfilter->setAcceptBinaryEvents(true);
     binfilter->setNext(Log4Qt::FilterSharedPtr(denyall));
@@ -224,7 +225,7 @@ void BinaryLoggerTest::testBinaryWriterAppender()
 {
     auto blogger = Log4Qt::Logger::logger(binLogger);
 
-    blogger->debug("Hello world!");
+    blogger->debug(QStringLiteral("Hello world!"));
     char expected[] = {0x18, 0x00, 0x00, 0x00, 0x48, 0x00, 0x65, 0x00,
                        0x6C, 0x00, 0x6C, 0x00, 0x6F, 0x00, 0x20, 0x00,
                        0x77, 0x00, 0x6F, 0x00, 0x72, 0x00, 0x6C, 0x00,
@@ -256,7 +257,7 @@ void BinaryLoggerTest::testBinaryFileAppender()
 
     auto _ = createScopeExitGuard([blogger, bfa] {blogger->removeAppender(bfa);});
 
-    blogger->debug("Hello world!");
+    blogger->debug(QStringLiteral("Hello world!"));
     Log4Qt::BinaryLoggingEvent event(blogger, Log4Qt::Level::INFO_INT, QByteArray("\0\1\2\3", 4));
     blogger->callAppenders(event);
 

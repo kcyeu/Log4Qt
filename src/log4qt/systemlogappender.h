@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        databaseappender.h
- * created:     December 2010
- * author:      Michael Filonenko
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2010 Michael Filonenko
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +17,7 @@
  * limitations under the License.
  *
  ******************************************************************************/
+
 #ifndef SYSTEMLOGAPPENDER_H
 #define SYSTEMLOGAPPENDER_H
 
@@ -50,16 +47,17 @@ class LOG4QT_EXPORT SystemLogAppender: public AppenderSkeleton
      * \sa serviceName(), setServiceName()
      */
     Q_PROPERTY(QString serviceName READ serviceName WRITE setServiceName)
+
 public:
     explicit SystemLogAppender(QObject *parent = nullptr);
-    ~SystemLogAppender();
+    ~SystemLogAppender() override;
 
     bool requiresLayout() const override;
     QString serviceName() const;
     void setServiceName(const QString &serviceName);
 
 protected:
-    virtual void append(const Log4Qt::LoggingEvent &rEvent) override;
+    void append(const Log4Qt::LoggingEvent &event) override;
 
     QString mServiceName;
     char *ident;

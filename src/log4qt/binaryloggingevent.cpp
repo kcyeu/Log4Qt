@@ -1,3 +1,23 @@
+/******************************************************************************
+ *
+ * This file is part of Log4Qt library.
+ *
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
+
 #include "binaryloggingevent.h"
 #include "logger.h"
 #include "helpers/datetime.h"
@@ -11,26 +31,23 @@ namespace Log4Qt
 
 static const char binMarker[] = "@@@ binary message @@@";
 
-BinaryLoggingEvent::BinaryLoggingEvent()
-    : LoggingEvent()
+BinaryLoggingEvent::BinaryLoggingEvent() = default;
+
+BinaryLoggingEvent::BinaryLoggingEvent(const Logger *logger, Level level, const QByteArray &message)
+    : LoggingEvent(logger, level, QString(binMarker))
+    , mBinaryMessage(message)
 {
 }
 
-BinaryLoggingEvent::BinaryLoggingEvent(const Logger *pLogger, Level level, const QByteArray &bMessage)
-    : LoggingEvent(pLogger, level, QString(binMarker))
-    , mBinaryMessage(bMessage)
+BinaryLoggingEvent::BinaryLoggingEvent(const Logger *logger, Level level, const QByteArray &message, qint64 timeStamp)
+    : LoggingEvent(logger, level, QString(binMarker), timeStamp)
+    , mBinaryMessage(message)
 {
 }
 
-BinaryLoggingEvent::BinaryLoggingEvent(const Logger *pLogger, Level level, const QByteArray &bMessage, qint64 timeStamp)
-    : LoggingEvent(pLogger, level, QString(binMarker), timeStamp)
-    , mBinaryMessage(bMessage)
-{
-}
-
-BinaryLoggingEvent::BinaryLoggingEvent(const Logger *pLogger, Level level, const QByteArray &bMessage, const QString &rNdc, const QHash<QString, QString> &rProperties, const QString &rThreadName, qint64 timeStamp)
-    : LoggingEvent(pLogger, level, QString(binMarker), rNdc, rProperties, rThreadName, timeStamp)
-    , mBinaryMessage(bMessage)
+BinaryLoggingEvent::BinaryLoggingEvent(const Logger *logger, Level level, const QByteArray &message, const QString &ndc, const QHash<QString, QString> &properties, const QString &threadName, qint64 timeStamp)
+    : LoggingEvent(logger, level, QString(binMarker), ndc, properties, threadName, timeStamp)
+    , mBinaryMessage(message)
 {
 }
 
@@ -50,18 +67,18 @@ QString BinaryLoggingEvent::binaryMarker()
 }
 
 #ifndef QT_NO_DATASTREAM
-QDataStream &operator<<(QDataStream &rStream, const BinaryLoggingEvent &rLoggingEvent)
+QDataStream &operator<<(QDataStream &out, const BinaryLoggingEvent &loggingEvent)
 {
-    rStream << static_cast<const LoggingEvent &>(rLoggingEvent);
-    rStream << rLoggingEvent.mBinaryMessage;
-    return rStream;
+    out << static_cast<const LoggingEvent &>(loggingEvent);
+    out << loggingEvent.mBinaryMessage;
+    return out;
 }
 
-QDataStream &operator>>(QDataStream &rStream, BinaryLoggingEvent &rLoggingEvent)
+QDataStream &operator>>(QDataStream &in, BinaryLoggingEvent &loggingEvent)
 {
-    rStream >> static_cast<LoggingEvent &>(rLoggingEvent);
-    rStream >> rLoggingEvent.mBinaryMessage;
-    return rStream;
+    in >> static_cast<LoggingEvent &>(loggingEvent);
+    in >> loggingEvent.mBinaryMessage;
+    return in;
 }
 #endif // QT_NO_DATASTREAM
 

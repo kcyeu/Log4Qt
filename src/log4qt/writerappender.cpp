@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        writerappender.cpp
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,85 +23,102 @@
 #include "layout.h"
 #include "loggingevent.h"
 
+#if QT_VERSION < 0x060000
 #include <QTextCodec>
+#endif
 
 namespace Log4Qt
 {
 
-WriterAppender::WriterAppender(QObject *pParent) :
-    AppenderSkeleton(false, pParent),
-    mpEncoding(nullptr),
-    mpWriter(nullptr),
+WriterAppender::WriterAppender(QObject *parent) :
+    AppenderSkeleton(false, parent),
+#if QT_VERSION < 0x060000
+    mEncoding(nullptr),
+#else
+    mEncoding(QStringConverter::Encoding::Utf8),
+#endif
+    mWriter(nullptr),
+    mImmediateFlush(true)
+{
+}
+
+WriterAppender::WriterAppender(const LayoutSharedPtr &layout,
+                               QObject *parent) :
+    AppenderSkeleton(false, layout, parent),
+#if QT_VERSION < 0x060000
+    mEncoding(nullptr),
+#else
+    mEncoding(QStringConverter::Encoding::System),
+#endif
+    mWriter(nullptr),
     mImmediateFlush(true)
 {
 }
 
 
-WriterAppender::WriterAppender(LayoutSharedPtr pLayout,
-                               QObject *pParent) :
-    AppenderSkeleton(false, pParent),
-    mpEncoding(nullptr),
-    mpWriter(nullptr),
+WriterAppender::WriterAppender(const LayoutSharedPtr &layout,
+                               QTextStream *textStream,
+                               QObject *parent) :
+    AppenderSkeleton(false, layout, parent),
+#if QT_VERSION < 0x060000
+    mEncoding(nullptr),
+#else
+    mEncoding(QStringConverter::Encoding::System),
+#endif
+    mWriter(textStream),
     mImmediateFlush(true)
 {
-    setLayout(pLayout);
 }
-
-
-WriterAppender::WriterAppender(LayoutSharedPtr pLayout,
-                               QTextStream *pTextStream,
-                               QObject *pParent) :
-    AppenderSkeleton(false, pParent),
-    mpEncoding(nullptr),
-    mpWriter(pTextStream),
-    mImmediateFlush(true)
-{
-    setLayout(pLayout);
-}
-
 
 WriterAppender::~WriterAppender()
 {
-    close();
+    closeInternal();
 }
 
-
-void WriterAppender::setEncoding(QTextCodec *pEncoding)
+#if QT_VERSION < 0x060000
+void WriterAppender::setEncoding(QTextCodec *encoding)
+#else
+void WriterAppender::setEncoding(QStringConverter::Encoding encoding)
+#endif
 {
     QMutexLocker locker(&mObjectGuard);
-
-    if (mpEncoding == pEncoding)
+    if (mEncoding == encoding)
         return;
 
-    mpEncoding = pEncoding;
-    if (mpWriter)
+    mEncoding = encoding;
+    if (mWriter != nullptr)
     {
-        if (mpEncoding)
-            mpWriter->setCodec(mpEncoding);
-        else
-            mpWriter->setCodec(QTextCodec::codecForLocale());
+#if QT_VERSION < 0x060000
+        if (mEncoding != nullptr)
+            mWriter->setCodec(mEncoding);
+#else
+        mWriter->setEncoding(mEncoding);
+#endif
     }
 }
 
-
-void WriterAppender::setWriter(QTextStream *pTextStream)
+void WriterAppender::setWriter(QTextStream *textStream)
 {
     QMutexLocker locker(&mObjectGuard);
 
     closeWriter();
 
-    mpWriter = pTextStream;
-    if (mpEncoding && mpWriter)
-        mpWriter->setCodec(mpEncoding);
+    mWriter = textStream;
+#if QT_VERSION < 0x060000
+    if ((mEncoding != nullptr) && (mWriter != nullptr))
+        mWriter->setCodec(mEncoding);
+#else
+    if (mWriter != nullptr)
+        mWriter->setEncoding(mEncoding);
+#endif
     writeHeader();
 }
-
 
 void WriterAppender::activateOptions()
 {
     QMutexLocker locker(&mObjectGuard);
 
-    if (!writer())
+    if (writer() == nullptr)
     {
         LogError e = LOG4QT_QCLASS_ERROR(QT_TR_NOOP("Activation of Appender '%1' that requires writer and has no writer set"),
                                          APPENDER_ACTIVATE_MISSING_WRITER_ERROR);
@@ -113,51 +126,51 @@ void WriterAppender::activateOptions()
         logger()->error(e);
         return;
     }
-
     AppenderSkeleton::activateOptions();
 }
 
-
 void WriterAppender::close()
+{
+    closeInternal();
+    AppenderSkeleton::close();
+}
+
+void WriterAppender::closeInternal()
 {
     QMutexLocker locker(&mObjectGuard);
 
     if (isClosed())
         return;
 
-    AppenderSkeleton::close();
     closeWriter();
 }
-
 
 bool WriterAppender::requiresLayout() const
 {
     return true;
 }
 
-
-void WriterAppender::append(const LoggingEvent &rEvent)
+void WriterAppender::append(const LoggingEvent &event)
 {
     Q_ASSERT_X(layout(), "WriterAppender::append()", "Layout must not be null");
 
-    QString message(layout()->format(rEvent));
+    QString message(layout()->format(event));
 
-    *mpWriter << message;
+    *mWriter << message;
     if (handleIoErrors())
         return;
 
     if (immediateFlush())
     {
-        mpWriter->flush();
+        mWriter->flush();
         if (handleIoErrors())
             return;
     }
 }
 
-
 bool WriterAppender::checkEntryConditions() const
 {
-    if (!writer())
+    if (writer() == nullptr)
     {
         LogError e = LOG4QT_QCLASS_ERROR(QT_TR_NOOP("Use of appender '%1' without a writer set"),
                                          APPENDER_USE_MISSING_WRITER_ERROR);
@@ -171,11 +184,11 @@ bool WriterAppender::checkEntryConditions() const
 
 void WriterAppender::closeWriter()
 {
-    if (!mpWriter)
+    if (mWriter == nullptr)
         return;
 
     writeFooter();
-    mpWriter = nullptr;
+    mWriter = nullptr;
 }
 
 bool WriterAppender::handleIoErrors() const
@@ -183,36 +196,33 @@ bool WriterAppender::handleIoErrors() const
     return false;
 }
 
-
 void WriterAppender::writeFooter() const
 {
-    if (!layout() || !mpWriter)
+    if (!layout() || (mWriter == nullptr))
         return;
 
     QString footer = layout()->footer();
     if (footer.isEmpty())
         return;
 
-    *mpWriter << footer << Layout::endOfLine();
+    *mWriter << footer << Layout::endOfLine();
     if (handleIoErrors())
         return;
 }
 
-
 void WriterAppender::writeHeader() const
 {
-    if (!layout() || !mpWriter)
+    if (!layout() || (mWriter == nullptr))
         return;
 
     QString header = layout()->header();
     if (header.isEmpty())
         return;
 
-    *mpWriter << header << Layout::endOfLine();
+    *mWriter << header << Layout::endOfLine();
     if (handleIoErrors())
         return;
 }
-
 
 } // namespace Log4Qt
 

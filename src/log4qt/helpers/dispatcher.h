@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        dispatcher.h
- * created:     February 2011
- * author:      Andreas Bacher
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2011 Andreas Bacher
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,13 +42,13 @@ class Dispatcher : public QObject
 public:
     explicit Dispatcher(QObject *parent = nullptr);
 
-    void setAsyncAppender(AsyncAppender *pAsyncAppender);
+    void setAsyncAppender(AsyncAppender *asyncAppender);
 
 protected:
-    virtual void customEvent(QEvent *event) override;
+    void customEvent(QEvent *event) override;
 
 private:
-    AsyncAppender *mpAsyncAppender;
+    AsyncAppender *mAsyncAppender;
 };
 
 } // namespace Log4Qt

@@ -1,20 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        initialisationhelper.h
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * changes:     Sep 2008, Martin Heinrich:
- *              - Replaced usage of q_atomic_test_and_set_ptr with
- *                QBasicAtomicPointer
- *              Feb 2016, Andreas Bacher:
- *              - Replaced usage of QBasicAtomicPointer with
- *                magic static initalization (thread safe with c++11)
- *
- *
- * Copyright 2007 - 2008 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +21,8 @@
 #ifndef LOG4QT_HELPERS_INITIALISATIONHELPER_H
 #define LOG4QT_HELPERS_INITIALISATIONHELPER_H
 
-#include <log4qt/log4qtshared.h>
+#include "log4qt/log4qtdefs.h"
+#include "log4qt/log4qtshared.h"
 
 #include <QHash>
 #include <QString>
@@ -85,7 +74,7 @@ namespace Log4Qt
 #define LOG4QT_IMPLEMENT_INSTANCE(TYPE)                  \
                 TYPE *TYPE::instance()                   \
                 {                                        \
-                    static TYPE * singelton(new TYPE);   \
+                    static auto * singelton(new TYPE);   \
                     return singelton;                    \
                 }
 
@@ -108,13 +97,13 @@ namespace Log4Qt
  *
  * \sa \ref Init "Initialization procedure",
  */
-class  LOG4QT_EXPORT InitialisationHelper
+class LOG4QT_EXPORT InitialisationHelper
 {
 private:
     InitialisationHelper();
     virtual ~InitialisationHelper();
 
-    Q_DISABLE_COPY(InitialisationHelper)
+    Q_DISABLE_COPY_MOVE(InitialisationHelper)
 
 public:
 
@@ -194,8 +183,8 @@ public:
      *     \ref Init "Initialization procedure",
      *     LogManager::configureLogLogger(), LogManager::startup()
      */
-    static QString setting(const QString &rKey,
-                           const QString &rDefault = QString());
+    static QString setting(const QString &key,
+                           const QString &defaultValue = QString());
 
     /*!
      * Returns the start time of the program as the number of milliseconds
@@ -210,15 +199,15 @@ public:
 private:
     void doInitialiseEnvironmentSettings();
     void doRegisterTypes();
-    QString doSetting(const QString &rKey,
-                      const QString &rDefault) const;
+    QString doSetting(const QString &key,
+                      const QString &defaultValue) const;
     static bool shutdown();
     static bool staticInitialisation();
 
 private:
     const qint64 mStartTime;
     QHash <QString, QString> mEnvironmentSettings;
-    static bool msStaticInitialisation;
+    static bool mStaticInitialisation;
 
 };
 
@@ -227,10 +216,10 @@ inline QHash<QString, QString> InitialisationHelper::environmentSettings()
     return instance()->mEnvironmentSettings;
 }
 
-inline QString InitialisationHelper::setting(const QString &rKey,
-        const QString &rDefault)
+inline QString InitialisationHelper::setting(const QString &key,
+        const QString &defaultValue)
 {
-    return instance()->doSetting(rKey, rDefault);
+    return instance()->doSetting(key, defaultValue);
 }
 
 inline qint64 InitialisationHelper::startTime()

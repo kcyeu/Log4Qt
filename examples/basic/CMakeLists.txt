@@ -1,4 +1,4 @@
-set(basic_SRCS
+set(basic_SOURCES
     loggerobject.cpp
     loggerobject.h
     loggerobjectprio.cpp
@@ -7,6 +7,6 @@ set(basic_SRCS
     loggerstatic.h
     main.cpp
 )
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../../bin)
-add_executable(basic ${basic_SRCS})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+add_executable(basic ${basic_SOURCES})
 target_link_libraries(basic log4qt)

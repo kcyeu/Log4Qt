@@ -1,17 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        classlogger.cpp
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * changes:     Sep 2008, Martin Heinrich:
- *              - Replaced usage of q_atomic_test_and_set_ptr with
- *                QAtomicPointer
- *
- *
- * Copyright 2007 - 2008 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,17 +25,17 @@ namespace Log4Qt
 {
 
 ClassLogger::ClassLogger() :
-    mpLogger(nullptr)
+    mLogger(nullptr)
 {
 }
 
-Logger *ClassLogger::logger(const QObject *pObject)
+Logger *ClassLogger::logger(const QObject *object)
 {
-    Q_ASSERT_X(pObject, "ClassLogger::logger()", "pObject must not be null");
-    if (!static_cast<Logger *>(mpLogger.loadAcquire()))
-        mpLogger.testAndSetOrdered(nullptr,
-                                   LogManager::logger(QLatin1String(pObject->metaObject()->className())));
-    return const_cast<Logger *>(static_cast<Logger *>(mpLogger.loadAcquire()));
+    Q_ASSERT_X(object, "ClassLogger::logger()", "pObject must not be null");
+    if (!static_cast<Logger *>(mLogger.loadAcquire()))
+        mLogger.testAndSetOrdered(nullptr,
+                                   LogManager::logger(QLatin1String(object->metaObject()->className())));
+    return const_cast<Logger *>(static_cast<Logger *>(mLogger.loadAcquire()));
 }
 
 } // namespace Log4Qt

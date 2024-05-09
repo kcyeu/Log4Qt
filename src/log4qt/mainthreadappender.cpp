@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        mainthreadappender.cpp
- * created:     February 2011
- * author:      Andreas Bacher
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2011 Andreas Bacher
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,11 +32,6 @@ namespace Log4Qt
 MainThreadAppender::MainThreadAppender(QObject *parent) : AppenderSkeleton(parent)
 {}
 
-MainThreadAppender::~MainThreadAppender()
-{
-    close();
-}
-
 bool MainThreadAppender::requiresLayout() const
 {
     return false;
@@ -50,24 +41,16 @@ void MainThreadAppender::activateOptions()
 {
 }
 
-void MainThreadAppender::close()
-{
-}
-
-void MainThreadAppender::append(const LoggingEvent &rEvent)
+void MainThreadAppender::append(const LoggingEvent &event)
 {
     QReadLocker locker(&mAppenderGuard);
 
-    for (auto pAppender : mAppenders)
+    for (auto &&pAppender : qAsConst(mAppenders))
     {
         if (QThread::currentThread() != qApp->thread())
-        {
-            LoggingEvent *event = new LoggingEvent(rEvent);
-            qApp->postEvent(pAppender.data(), event);
-
-        }
+            qApp->postEvent(pAppender.data(), new LoggingEvent(event));
         else
-            pAppender->doAppend(rEvent);
+            pAppender->doAppend(event);
     }
 }
 

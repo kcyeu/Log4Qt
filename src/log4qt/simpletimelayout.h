@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        simpletimelayout.h
- * created:     March 2010
- * author:      Filonenko Michael
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2010 Filonenko Michael
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,23 +33,22 @@ namespace Log4Qt
  * \note The ownership and lifetime of objects of this class are managed.
  *       See \ref Ownership "Object ownership" for more details.
  */
-class LOG4QT_EXPORT  SimpleTimeLayout : public Layout
+class LOG4QT_EXPORT SimpleTimeLayout : public Layout
 {
     Q_OBJECT
 
 public:
-    SimpleTimeLayout(QObject *pParent = nullptr);
+    SimpleTimeLayout(QObject *parent = nullptr);
 
 private:
-    Q_DISABLE_COPY(SimpleTimeLayout)
+    Q_DISABLE_COPY_MOVE(SimpleTimeLayout)
 
 public:
-    virtual QString format(const LoggingEvent &rEvent) override;
-
+    QString format(const LoggingEvent &event) override;
 };
 
-inline SimpleTimeLayout::SimpleTimeLayout(QObject *pParent) :
-    Layout(pParent)
+inline SimpleTimeLayout::SimpleTimeLayout(QObject *parent) :
+    Layout(parent)
 {}
 
 } // namespace Log4Qt

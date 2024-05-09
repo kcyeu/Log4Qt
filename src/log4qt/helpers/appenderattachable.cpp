@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        appenderattachable.cpp
- * created:     Dezember 2010
- * author:      Andreas Bacher
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Andreas Bacher
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,36 +30,38 @@ AppenderAttachable::AppenderAttachable() :
 {
 }
 
+AppenderAttachable::~AppenderAttachable() = default;
+
 QList<AppenderSharedPtr> AppenderAttachable::appenders() const
 {
     QReadLocker locker(&mAppenderGuard);
     return mAppenders;
 }
 
-void AppenderAttachable::addAppender(AppenderSharedPtr pAppender)
-{
-    if (pAppender.isNull())
-        return;
-    QWriteLocker locker(&mAppenderGuard);
-    if (mAppenders.contains(pAppender))
-        return;
-    mAppenders.append(pAppender);
-}
-
-AppenderSharedPtr AppenderAttachable::appender(const QString &rName) const
+AppenderSharedPtr AppenderAttachable::appender(const QString &name) const
 {
     QReadLocker locker(&mAppenderGuard);
 
-    for (auto pAppender : mAppenders)
-        if (pAppender->name() == rName)
+    for (auto &&pAppender : qAsConst(mAppenders))
+        if (pAppender->name() == name)
             return pAppender;
     return AppenderSharedPtr();
 }
 
-bool AppenderAttachable::isAttached(AppenderSharedPtr pAppender) const
+void AppenderAttachable::addAppender(const AppenderSharedPtr &appender)
+{
+    if (appender.isNull())
+        return;
+    QWriteLocker locker(&mAppenderGuard);
+    if (mAppenders.contains(appender))
+        return;
+    mAppenders.append(appender);
+}
+
+bool AppenderAttachable::isAttached(const AppenderSharedPtr &appender) const
 {
     QReadLocker locker(&mAppenderGuard);
-    return mAppenders.contains(pAppender);
+    return mAppenders.contains(appender);
 }
 
 void AppenderAttachable::removeAllAppenders()
@@ -71,19 +69,19 @@ void AppenderAttachable::removeAllAppenders()
     mAppenders.clear();
 }
 
-void AppenderAttachable::removeAppender(AppenderSharedPtr pAppender)
+void AppenderAttachable::removeAppender(const AppenderSharedPtr &appender)
 {
-    if (pAppender.isNull())
+    if (appender.isNull())
         return;
     QWriteLocker locker(&mAppenderGuard);
-    mAppenders.removeAll(pAppender);
+    mAppenders.removeAll(appender);
 
 }
 
-void AppenderAttachable::removeAppender(const QString &rName)
+void AppenderAttachable::removeAppender(const QString &name)
 {
     QWriteLocker locker(&mAppenderGuard);
-    AppenderSharedPtr pAppender = appender(rName);
+    AppenderSharedPtr pAppender = appender(name);
     if (pAppender)
         removeAppender(pAppender);
 }

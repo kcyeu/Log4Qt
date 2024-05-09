@@ -1,12 +1,8 @@
 /******************************************************************************
-*
-* package:     Log4Qt
-* file:        loggingevent.h
-* created:     September 2007
-* author:      Martin Heinrich
  *
+ * This file is part of Log4Qt library.
  *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-******************************************************************************/
+ ******************************************************************************/
 
 #ifndef LOG4QT_LOG4QTEVENT_H
 #define LOG4QT_LOG4QTEVENT_H
@@ -30,6 +26,8 @@
 #include <QHash>
 #include <QStringList>
 #include <QEvent>
+
+#include <atomic>
 
 namespace Log4Qt
 {
@@ -61,43 +59,45 @@ class LOG4QT_EXPORT LoggingEvent : public QEvent
 public:
     static const QEvent::Type eventId;
     LoggingEvent();
-    LoggingEvent(const Logger *pLogger,
-                 Level level,
-                 const QString &rMessage);
-    LoggingEvent(const Logger *pLogger,
-                 Level level,
-                 const QString &rMessage,
-                 const MessageContext &context,
-                 const QString &categoryName);
-    LoggingEvent(const Logger *pLogger,
-                 Level level,
-                 const QString &rMessage,
-                 qint64 timeStamp);
-    LoggingEvent(const Logger *pLogger,
-                 Level level,
-                 const QString &rMessage,
-                 const QString &rNdc,
-                 const QHash<QString, QString> &rProperties,
-                 const QString &rThreadName,
-                 qint64 timeStamp);
-    LoggingEvent(const Logger *pLogger,
-                 Level level,
-                 const QString &rMessage,
-                 const QString &rNdc,
-                 const QHash<QString, QString> &rProperties,
-                 qint64 timeStamp,
-                 const MessageContext &context,
-                 const QString &categoryName);
-    LoggingEvent(const Logger *pLogger,
-                 Level level,
-                 const QString &rMessage,
-                 const QString &rNdc,
-                 const QHash<QString, QString> &rProperties,
-                 const QString &rThreadName,
-                 qint64 timeStamp,
-                 const MessageContext &context,
-                 const QString &categoryName);
     virtual ~LoggingEvent();
+
+    LoggingEvent(const Logger *logger,
+                 Level level,
+                 const QString &message);
+    LoggingEvent(const Logger *logger,
+                 Level level,
+                 const QString &message,
+                 const MessageContext &context,
+                 const QString &categoryName);
+    LoggingEvent(const Logger *logger,
+                 Level level,
+                 const QString &message,
+                 qint64 timeStamp);
+    LoggingEvent(const Logger *logger,
+                 Level level,
+                 const QString &message,
+                 const QString &ndc,
+                 const QHash<QString, QString> &properties,
+                 const QString &threadName,
+                 qint64 timeStamp);
+    LoggingEvent(const Logger *logger,
+                 Level level,
+                 const QString &message,
+                 const QString &ndc,
+                 const QHash<QString, QString> &properties,
+                 qint64 timeStamp,
+                 const MessageContext &context,
+                 const QString &categoryName);
+    LoggingEvent(const Logger *logger,
+                 Level level,
+                 const QString &message,
+                 const QString &ndc,
+                 const QHash<QString, QString> &properties,
+                 const QString &threadName,
+                 qint64 timeStamp,
+                 const MessageContext &context,
+                 const QString &categoryName);
+
     Level level() const;
     // LocationInformation locationInformation() const;
     const Logger *logger() const;
@@ -109,10 +109,10 @@ public:
     QString threadName() const;
     qint64 timeStamp() const;
 
-    QString loggerName() const;
-    QString property(const QString &rKey) const;
+    QString loggename() const;
+    QString property(const QString &key) const;
     QStringList propertyKeys() const;
-    void setProperty(const QString &rKey, const QString &rValue);
+    void setProperty(const QString &key, const QString &value);
     QString toString() const;
     static qint64 sequenceCount();
     static qint64 startTime();
@@ -134,7 +134,7 @@ private:
 
 private:
     Level mLevel;
-    const Logger *mpLogger;
+    const Logger *mLogger;
     QString mMessage;
     QString mNdc;
     QHash<QString, QString> mProperties;
@@ -144,14 +144,14 @@ private:
     MessageContext mContext;
     QString mCategoryName;
 
-    static qint64 msSequenceCount;
+    static std::atomic<qint64> msSequenceCount;
 
 #ifndef QT_NO_DATASTREAM
     // Needs to be friend to stream objects
-    friend LOG4QT_EXPORT QDataStream &operator<<(QDataStream &rStream,
-            const LoggingEvent &rLoggingEvent);
-    friend LOG4QT_EXPORT QDataStream &operator>>(QDataStream &rStream,
-            LoggingEvent &rLoggingEvent);
+    friend LOG4QT_EXPORT QDataStream &operator<<(QDataStream &out,
+                                                const LoggingEvent &loggingEvent);
+    friend LOG4QT_EXPORT QDataStream &operator>>(QDataStream &in,
+                                                 LoggingEvent &loggingEvent);
 #endif // QT_NO_DATASTREAM
 };
 
@@ -162,8 +162,8 @@ private:
  * Writes the given error \a rLoggingEvent to the given stream \a rStream,
  * and returns a reference to the stream.
  */
-LOG4QT_EXPORT QDataStream &operator<<(QDataStream &rStream,
-                                      const LoggingEvent &rLoggingEvent);
+LOG4QT_EXPORT QDataStream &operator<<(QDataStream &out,
+                                      const LoggingEvent &loggingEvent);
 
 /*!
  * \relates LoggingEvent
@@ -171,8 +171,8 @@ LOG4QT_EXPORT QDataStream &operator<<(QDataStream &rStream,
  * Reads an error from the given stream \a rStream into the given
  * error \a rLoggingEvent, and returns a reference to the stream.
  */
-LOG4QT_EXPORT QDataStream &operator>>(QDataStream &rStream,
-                                      LoggingEvent &rLoggingEvent);
+LOG4QT_EXPORT QDataStream &operator>>(QDataStream &in,
+                                      LoggingEvent &loggingEvent);
 #endif // QT_NO_DATASTREAM
 
 inline Level LoggingEvent::level() const
@@ -182,7 +182,7 @@ inline Level LoggingEvent::level() const
 
 inline const Logger *LoggingEvent::logger() const
 {
-    return mpLogger;
+    return mLogger;
 }
 
 inline QString LoggingEvent::message() const
@@ -220,9 +220,9 @@ inline qint64 LoggingEvent::timeStamp() const
     return mTimeStamp;
 }
 
-inline QString LoggingEvent::property(const QString &rKey) const
+inline QString LoggingEvent::property(const QString &key) const
 {
-    return mProperties.value(rKey);
+    return mProperties.value(key);
 }
 
 inline QStringList LoggingEvent::propertyKeys() const
@@ -230,9 +230,9 @@ inline QStringList LoggingEvent::propertyKeys() const
     return QStringList(mProperties.keys());
 }
 
-inline void LoggingEvent::setProperty(const QString &rKey, const QString &rValue)
+inline void LoggingEvent::setProperty(const QString &key, const QString &value)
 {
-    mProperties.insert(rKey, rValue);
+    mProperties.insert(key, value);
 }
 
 

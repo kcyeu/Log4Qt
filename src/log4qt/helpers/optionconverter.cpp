@@ -1,17 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        optionconverter.cpp
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * changes      Feb 2009, Martin Heinrich
- *              - Fixed a problem were OptionConverter::toBoolean would not
- *                return the default value, if the conversion fails.
- *
- *
- * Copyright 2007 - 2009 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,15 +30,15 @@ namespace Log4Qt
 
 LOG4QT_DECLARE_STATIC_LOGGER(logger, Log4Qt::OptionConverter)
 
-QString OptionConverter::findAndSubst(const Properties &rProperties,
-                                      const QString &rKey)
+QString OptionConverter::findAndSubst(const Properties &properties,
+                                      const QString &key)
 {
-    QString value = rProperties.property(rKey);
+    QString value = properties.property(key);
     if (value.isNull())
         return value;
 
-    const QString begin_subst = QLatin1String("${");
-    const QString end_subst = QLatin1String("}");
+    const QString begin_subst = QStringLiteral("${");
+    const QString end_subst = QStringLiteral("}");
     const int begin_length = begin_subst.length();
     const int end_length = end_subst.length();
 
@@ -63,12 +54,12 @@ QString OptionConverter::findAndSubst(const Properties &rProperties,
         begin = value.indexOf(begin_subst, i);
         if (begin == -1)
         {
-            result += value.midRef(i);
+            result += value.mid(i);
             i = value.length();
         }
         else
         {
-            result += value.midRef(i, begin - i);
+            result += value.mid(i, begin - i);
             end = value.indexOf(end_subst, i + begin_length);
             if (end == -1)
             {
@@ -79,33 +70,28 @@ QString OptionConverter::findAndSubst(const Properties &rProperties,
                 logger()->error(e);
                 return result;
             }
-            else
-            {
-                auto keyName = value.mid(begin + begin_length, end - begin - end_length - 1);
-                auto subValue = findAndSubst(rProperties, keyName);
-                if (subValue.isNull() && keyName.startsWith("LOG4QT_"))
-                    subValue = qgetenv(qPrintable(keyName));
-                result +=subValue;
-                i = end + end_length;
-            }
+            auto keyName = value.mid(begin + begin_length, end - begin - end_length - 1);
+            auto subValue = findAndSubst(properties, keyName);
+            if (subValue.isNull() && keyName.startsWith(QLatin1String("LOG4QT_")))
+                subValue = qgetenv(qPrintable(keyName));
+            result +=subValue;
+            i = end + end_length;
         }
     }
     return result;
 }
 
-
-QString OptionConverter::classNameJavaToCpp(const QString &rClassName)
+QString OptionConverter::classNameJavaToCpp(const QString &className)
 {
-    const QLatin1String java_class_delimiter(".");
+    const QLatin1Char java_class_delimiter('.');
     const QLatin1String cpp_class_delimiter("::");
 
-    QString result = rClassName;
+    QString result = className;
     return result.replace(java_class_delimiter, cpp_class_delimiter);
 }
 
-
-bool OptionConverter::toBoolean(const QString &rOption,
-                                bool *p_ok)
+bool OptionConverter::toBoolean(const QString &option,
+                                bool *ok)
 {
     const QLatin1String str_true("true");
     const QLatin1String str_enabled("enabled");
@@ -114,38 +100,37 @@ bool OptionConverter::toBoolean(const QString &rOption,
     const QLatin1String str_disabled("disabled");
     const QLatin1String str_zero("0");
 
-    if (p_ok)
-        *p_ok = true;
-    QString s = rOption.trimmed().toLower();
+    if (ok)
+        *ok = true;
+    QString s = option.trimmed().toLower();
     if (s == str_true || s == str_enabled || s == str_one)
         return true;
     if (s == str_false || s == str_disabled || s == str_zero)
         return false;
 
-    if (p_ok)
-        *p_ok = false;
+    if (ok)
+        *ok = false;
     LogError e = LOG4QT_ERROR(QT_TR_NOOP("Invalid option string '%1' for a boolean"),
                               CONFIGURATOR_INVALID_OPTION_ERROR,
                               "Log4Qt::OptionConverter");
-    e << rOption;
+    e << option;
     logger()->error(e);
     return false;
 }
 
-
-bool OptionConverter::toBoolean(const QString &rOption,
-                                bool default_value)
+bool OptionConverter::toBoolean(const QString &option,
+                                bool defaultValue)
 {
     bool ok;
-    bool result = toBoolean(rOption, &ok);
+    bool result = toBoolean(option, &ok);
     if (ok)
         return result;
-    else
-        return default_value;
+
+    return defaultValue;
 }
 
-qint64 OptionConverter::toFileSize(const QString &rOption,
-                                   bool *p_ok)
+qint64 OptionConverter::toFileSize(const QString &option,
+                                   bool *ok)
 {
     // - Search for unit
     // - Convert characters befor unit to int
@@ -154,116 +139,151 @@ qint64 OptionConverter::toFileSize(const QString &rOption,
     //   - the value < 0
     //   - there is text after the unit characters
 
-    if (p_ok)
-        *p_ok = false;
-    QString s = rOption.trimmed().toLower();
+    if (ok != nullptr)
+        *ok = false;
+    QString s = option.trimmed().toLower();
     qint64 f = 1;
     int i;
-    i = s.indexOf(QLatin1String("kb"));
+    i = s.indexOf(QStringLiteral("kb"));
     if (i >= 0)
         f = 1024;
     else
     {
-        i = s.indexOf(QLatin1String("mb"));
+        i = s.indexOf(QStringLiteral("mb"));
         if (i >= 0)
             f = 1024 * 1024;
         else
         {
-            i = s.indexOf(QLatin1String("gb"));
+            i = s.indexOf(QStringLiteral("gb"));
             if (i >= 0)
                 f = 1024 * 1024 * 1024;
         }
     }
     if (i < 0)
         i = s.length();
-    bool ok;
-    qint64 value = s.left(i).toLongLong(&ok);
-    if (!ok || value < 0 || s.length() > i + 2)
+    bool convertOk;
+    qint64 value = s.left(i).toLongLong(&convertOk);
+    if (!convertOk || value < 0 || s.length() > i + 2)
     {
         LogError e = LOG4QT_ERROR(QT_TR_NOOP("Invalid option string '%1' for a file size"),
                                   CONFIGURATOR_INVALID_OPTION_ERROR,
                                   "Log4Qt::OptionConverter");
-        e << rOption;
+        e << option;
         logger()->error(e);
         return 0;
     }
-    if (p_ok)
-        *p_ok = true;
+    if (ok != nullptr)
+        *ok = true;
     return value * f;
 }
 
-
-int OptionConverter::toInt(const QString &rOption,
-                           bool *p_ok)
+int OptionConverter::toInt(const QString &option,
+                           bool *ok)
 {
-    int value = rOption.trimmed().toInt(p_ok);
-    if (*p_ok)
+    int value = option.trimmed().toInt(ok);
+    if (*ok)
         return value;
 
     LogError e = LOG4QT_ERROR(QT_TR_NOOP("Invalid option string '%1' for an integer"),
                               CONFIGURATOR_INVALID_OPTION_ERROR,
                               "Log4Qt::OptionConverter");
-    e << rOption;
+    e << option;
     logger()->error(e);
     return 0;
 }
 
-
-Level OptionConverter::toLevel(const QString &rOption,
-                               bool *p_ok)
+Level OptionConverter::toLevel(const QString &option,
+                               bool *ok)
 {
-    bool ok;
-    Level level = Level::fromString(rOption.toUpper().trimmed(), &ok);
-    if (p_ok)
-        *p_ok = ok;
-    if (ok)
+    bool convertOk;
+    Level level = Level::fromString(option.toUpper().trimmed(), &convertOk);
+    if (ok != nullptr)
+        *ok = convertOk;
+    if (convertOk)
         return level;
 
     LogError e = LOG4QT_ERROR(QT_TR_NOOP("Invalid option string '%1' for a level"),
                               CONFIGURATOR_INVALID_OPTION_ERROR,
                               "Log4Qt::OptionConverter");
-    e << rOption;
+    e << option;
     logger()->error(e);
     return level;
 }
 
-
-Level OptionConverter::toLevel(const QString &rOption,
-                               const Level &rDefaultValue)
+Level OptionConverter::toLevel(const QString &option,
+                               Log4Qt::Level defaultValue)
 {
     bool ok;
-    Level result = toLevel(rOption, &ok);
+    Level result = toLevel(option, &ok);
     if (ok)
         return result;
-    else
-        return rDefaultValue;
+
+    return defaultValue;
 }
 
-
-int OptionConverter::toTarget(const QString &rOption,
-                              bool *p_ok)
+int OptionConverter::toTarget(const QString &option,
+                              bool *ok)
 {
     const QLatin1String java_stdout("system.out");
     const QLatin1String cpp_stdout("stdout_target");
     const QLatin1String java_stderr("system.err");
     const QLatin1String cpp_stderr("stderr_target");
 
-    if (p_ok)
-        *p_ok = true;
-    QString s = rOption.trimmed().toLower();
+    if (ok)
+        *ok = true;
+    QString s = option.trimmed().toLower();
     if (s == java_stdout || s == cpp_stdout)
         return ConsoleAppender::STDOUT_TARGET;
     if (s == java_stderr || s == cpp_stderr)
         return ConsoleAppender::STDERR_TARGET;
 
-    if (p_ok)
-        *p_ok = false;
+    if (ok)
+        *ok = false;
     LogError e = LOG4QT_ERROR(QT_TR_NOOP("Invalid option string '%1' for a target"),
                               CONFIGURATOR_INVALID_OPTION_ERROR,
                               "Log4Qt::OptionConverter");
-    e << rOption;
+    e << option;
     logger()->error(e);
     return ConsoleAppender::STDOUT_TARGET;
 }
 
+#if QT_VERSION < 0x060000
+QTextCodec* OptionConverter::toEncoding(const QString &option,
+                              bool *ok)
+{
+    QTextCodec* encoding = QTextCodec::codecForName(option.toUtf8());
+    if (encoding) {
+        *ok = true;
+        return encoding;
+    }
+
+    *ok = false;
+
+    LogError e = LOG4QT_ERROR(QT_TR_NOOP("Invalid option string '%1' for a QTextCodec"),
+                              CONFIGURATOR_INVALID_OPTION_ERROR,
+                              "Log4Qt::OptionConverter");
+    e << option;
+    logger()->error(e);
+    return 0;
+}
+#else
+    QStringConverter::Encoding OptionConverter::toEncoding(const QString &option,
+                                            bool *ok)
+    {
+        std::optional<QStringConverter::Encoding> encoding = QStringConverter::encodingForName(option.toStdString().c_str());
+        if (encoding.has_value()) {
+            *ok = true;
+            return encoding.value();
+        }
+
+        *ok = false;
+
+        LogError e = LOG4QT_ERROR(QT_TR_NOOP("Invalid option string '%1' for a QStringConverter::Encoding"),
+                                  CONFIGURATOR_INVALID_OPTION_ERROR,
+                                  "Log4Qt::OptionConverter");
+        e << option;
+        logger()->error(e);
+        return QStringConverter::System;
+    }
+#endif
 } // namespace Log4Qt

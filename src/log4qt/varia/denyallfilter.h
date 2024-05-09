@@ -1,17 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        denyallfilter.h
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * changes      Feb 2009, Martin Heinrich
- *              - Fixed a compile error on VS 2008 by using Q_UNUSED(&rEvent)
- *                instead of Q_UNUSED(rEvent)
- *
- *
- * Copyright 2007 - 2009 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +21,7 @@
 #ifndef LOG4QT_DENYALLFILTER_H
 #define LOG4QT_DENYALLFILTER_H
 
-#include <log4qt/spi/filter.h>
+#include "log4qt/spi/filter.h"
 
 namespace Log4Qt
 {
@@ -41,16 +32,16 @@ namespace Log4Qt
  * \note The ownership and lifetime of objects of this class are managed.
  *       See \ref Ownership "Object ownership" for more details.
  */
-class  LOG4QT_EXPORT DenyAllFilter : public Filter
+class LOG4QT_EXPORT DenyAllFilter : public Filter
 {
     Q_OBJECT
 
 public:
-    DenyAllFilter(QObject *pParent = nullptr);
+    DenyAllFilter(QObject *parent = nullptr);
 
-    virtual Decision decide(const LoggingEvent &rEvent) const override
+    Decision decide(const LoggingEvent &event) const override
     {
-        Q_UNUSED(&rEvent);
+        Q_UNUSED(&event);
         return Filter::DENY;
     }
 };

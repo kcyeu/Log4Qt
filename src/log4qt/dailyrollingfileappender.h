@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:
- * file:        dailyrollingfileappender.h
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +37,7 @@ namespace Log4Qt
  * \note The ownership and lifetime of objects of this class are managed. See
  *       \ref Ownership "Object ownership" for more details.
  */
-class  LOG4QT_EXPORT DailyRollingFileAppender : public FileAppender
+class LOG4QT_EXPORT DailyRollingFileAppender : public FileAppender
 {
     Q_OBJECT
 
@@ -77,14 +73,14 @@ public:
     };
     Q_ENUM(DatePattern)
 
-    DailyRollingFileAppender(QObject *pParent = nullptr);
-    DailyRollingFileAppender(LayoutSharedPtr pLayout,
-                             const QString &rFileName,
-                             const QString &rDatePattern,
-                             QObject *pParent = nullptr);
-    virtual ~DailyRollingFileAppender();
+    DailyRollingFileAppender(QObject *parent = nullptr);
+    DailyRollingFileAppender(const LayoutSharedPtr &layout,
+                             const QString &fileName,
+                             const QString &datePattern,
+                             QObject *parent = nullptr);
+
 private:
-    Q_DISABLE_COPY(DailyRollingFileAppender)
+    Q_DISABLE_COPY_MOVE(DailyRollingFileAppender)
 public:
     QString datePattern() const;
 
@@ -94,12 +90,12 @@ public:
     */
     void setDatePattern(DatePattern datePattern);
 
-    void setDatePattern(const QString &rDatePattern);
+    void setDatePattern(const QString &datePattern);
 
-    virtual void activateOptions() override;
+    void activateOptions() override;
 
 protected:
-    virtual void append(const LoggingEvent &rEvent) override;
+    void append(const LoggingEvent &event) override;
 
     /*!
      * Tests if all entry conditions for using append() in this class are
@@ -118,11 +114,11 @@ protected:
      * \sa AppenderSkeleton::doAppend(),
      *     AppenderSkeleton::checkEntryConditions()
      */
-    virtual bool checkEntryConditions() const override;
+    bool checkEntryConditions() const override;
 
 private:
     void computeFrequency();
-    void computeRollOverTime();
+    void computeRollOvetime();
     QString frequencyToString() const;
     void rollOver();
 
@@ -130,7 +126,7 @@ private:
     QString mDatePattern;
     DatePattern mFrequency;
     QString mActiveDatePattern;
-    QDateTime mRollOverTime;
+    QDateTime mRollOvetime;
     QString mRollOverSuffix;
 };
 
@@ -140,10 +136,10 @@ inline QString DailyRollingFileAppender::datePattern() const
     return mDatePattern;
 }
 
-inline void DailyRollingFileAppender::setDatePattern(const QString &rDatePattern)
+inline void DailyRollingFileAppender::setDatePattern(const QString &datePattern)
 {
     QMutexLocker locker(&mObjectGuard);
-    mDatePattern = rDatePattern;
+    mDatePattern = datePattern;
 }
 
 

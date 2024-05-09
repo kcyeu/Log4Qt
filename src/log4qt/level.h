@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        level.h
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,44 +70,48 @@ public:
         return mValue;
     }
 
-    bool operator==(const Level &rOther) const
+    bool operator==(const Level other) const
     {
-        return mValue == rOther.mValue;
+        return mValue == other.mValue;
     }
-    bool operator!=(const Level &rOther) const
+
+    bool operator!=(const Level other) const
     {
-        return mValue != rOther.mValue;
+        return mValue != other.mValue;
     }
-    bool operator<(const Level &rOther) const
+
+    bool operator<(const Level other) const
     {
-        return mValue < rOther.mValue;
+        return mValue < other.mValue;
     }
-    bool operator<=(const Level &rOther) const
+
+    bool operator<=(const Level other) const
     {
-        return mValue <= rOther.mValue;
+        return mValue <= other.mValue;
     }
-    bool operator>(const Level &rOther) const
+
+    bool operator>(const Level other) const
     {
-        return mValue > rOther.mValue;
+        return mValue > other.mValue;
     }
-    bool operator>=(const Level &rOther) const
+
+    bool operator>=(const Level other) const
     {
-        return mValue >= rOther.mValue;
+        return mValue >= other.mValue;
     }
     QString toString() const;
 
-    static Level fromString(const QString &rName, bool *pOk = nullptr);
+    static Level fromString(const QString &level, bool *ok = nullptr);
 
 private:
-    // QMutex mObjectGuard;
     volatile Value mValue;
 
 #ifndef QT_NO_DATASTREAM
     // Needs to be friend to stream objects
-    friend QDataStream &operator<<(QDataStream &rStream,
-                                   const Level &rLevel);
-    friend QDataStream &operator>>(QDataStream &rStream,
-                                   Level &rLevel);
+    friend LOG4QT_EXPORT QDataStream &operator<<(QDataStream &out,
+                                   Log4Qt::Level level);
+    friend LOG4QT_EXPORT QDataStream &operator>>(QDataStream &in,
+                                   Level &level);
 #endif // QT_NO_DATASTREAM
 };
 
@@ -122,8 +122,8 @@ private:
  * Writes the given error \a rLevel to the given stream \a rStream,
  * and returns a reference to the stream.
  */
-QDataStream &operator<<(QDataStream &rStream,
-                        const Level &rLevel);
+LOG4QT_EXPORT QDataStream &operator<<(QDataStream &out,
+                        Log4Qt::Level level);
 
 /*!
  * \relates Level
@@ -131,8 +131,8 @@ QDataStream &operator<<(QDataStream &rStream,
  * Reads an error from the given stream \a rStream into the given
  * error \a rLevel, and returns a reference to the stream.
  */
-QDataStream &operator>>(QDataStream &rStream,
-                        Level &rLevel);
+LOG4QT_EXPORT QDataStream &operator>>(QDataStream &in,
+                        Level &level);
 #endif // QT_NO_DATASTREAM
 
 } // namespace Log4Qt

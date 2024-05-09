@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:
- * file:        basicconfigurator.cpp
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,17 +34,17 @@ namespace Log4Qt
 
 bool BasicConfigurator::configure()
 {
-    ListAppender *list = new ListAppender;
-    list->setName(QLatin1String("BasicConfigurator"));
+    auto *list = new ListAppender;
+    list->setName(QStringLiteral("BasicConfigurator"));
     list->setConfiguratorList(true);
     list->setThreshold(Level::ERROR_INT);
     LogManager::logLogger()->addAppender(AppenderSharedPtr(list));
 
     LayoutSharedPtr p_layout(new PatternLayout(PatternLayout::TTCC_CONVERSION_PATTERN));
-    p_layout->setName(QLatin1String("BasicConfigurator TTCC"));
+    p_layout->setName(QStringLiteral("BasicConfigurator TTCC"));
     p_layout->activateOptions();
     ConsoleAppender *p_appender = new ConsoleAppender(p_layout, ConsoleAppender::STDOUT_TARGET);
-    p_appender->setName(QLatin1String("BasicConfigurator stdout"));
+    p_appender->setName(QStringLiteral("BasicConfigurator stdout"));
     p_appender->activateOptions();
     LogManager::rootLogger()->addAppender(p_appender);
 

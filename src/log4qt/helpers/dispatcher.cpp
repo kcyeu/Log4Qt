@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        dispatcher.cpp
- * created:     February 2011
- * author:      Andreas Bacher
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2011 Andreas Bacher
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,23 +28,23 @@ namespace Log4Qt
 {
 
 Dispatcher::Dispatcher(QObject *parent) : QObject(parent)
-    , mpAsyncAppender(nullptr)
+    , mAsyncAppender(nullptr)
 {}
 
 void Dispatcher::customEvent(QEvent *event)
 {
     if (event->type() == LoggingEvent::eventId)
     {
-        LoggingEvent *logEvent = static_cast<LoggingEvent *>(event);
-        if (mpAsyncAppender)
-            mpAsyncAppender->callAppenders(*logEvent);
+        auto *logEvent = static_cast<LoggingEvent *>(event);
+        if (mAsyncAppender != nullptr)
+            mAsyncAppender->callAppenders(*logEvent);
     }
     QObject::customEvent(event);
 }
 
-void Dispatcher::setAsyncAppender(AsyncAppender *pAsyncAppender)
+void Dispatcher::setAsyncAppender(AsyncAppender *asyncAppender)
 {
-    mpAsyncAppender = pAsyncAppender;
+    mAsyncAppender = asyncAppender;
 }
 
 } // namespace Log4Qt

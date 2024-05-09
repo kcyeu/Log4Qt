@@ -1,16 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        datetime.h
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * changes:     Sep 2008, Martin Heinrich:
- *              - Resolved compilation problem with Microsoft Visual Studio 2005
- *
- *
- * Copyright 2007 - 2008 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +21,7 @@
 #ifndef LOG4QT_HELPERS_DATETIME_H
 #define LOG4QT_HELPERS_DATETIME_H
 
-#include <log4qt/log4qtshared.h>
+#include "log4qt/log4qtshared.h"
 
 #include <QDateTime>
 
@@ -42,7 +34,7 @@ namespace Log4Qt
  * The class DateTime implements additional formatting options for
  * toString() and provides conversion functions from and to milliseconds.
  */
-class LOG4QT_EXPORT  DateTime : public QDateTime
+class LOG4QT_EXPORT DateTime : public QDateTime
 {
 public:
     /*!
@@ -52,36 +44,39 @@ public:
      */
     DateTime();
 
+    ~DateTime();
+
     /*!
      * Constructs a copy of another QDateTime.
      *
-     * \sa QDateTime::QDateTime(const QDateTime &rOther)
+     * \sa QDateTime::QDateTime(const QDateTime &other)
      */
-    DateTime(const QDateTime &rOther);
+    DateTime(const QDateTime &other);
+
+    DateTime(const DateTime &other);
 
     /*!
-     * Constructs a datetime with the given \a rDate and \a rTime, using
+     * Constructs a datetime with the given \a date and \a time, using
      * the time specification defined by \a timeSpec.
      *
-     * \sa QDateTime::QDateTime(const QDate &rDate, const QTime &rTime,
+     * \sa QDateTime::QDateTime(const QDate &date, const QTime &time,
      *     Qt::TimeSpec timeSpec = Qt::LocalTime)
      */
-    DateTime(const QDate &rDate,
-             const QTime &rTime,
+    DateTime(QDate date,
+             QTime time,
              Qt::TimeSpec timeSpec = Qt::LocalTime);
 
     /*!
-     * Assigns \a rOther to this DateTime and returns a reference to it.
+     * Assigns \a other to this DateTime and returns a reference to it.
      */
-    DateTime &operator=(const DateTime &rOther);
-
+    DateTime &operator=(const DateTime &other);
 
     /*!
-     * Returns the datetime as a string. The \a rFormat parameter
+     * Returns the datetime as a string. The \a format parameter
      * determines the format of the result string.
      *
      *
-     * Alternatively the \a rFormat parameter can specify one of the
+     * Alternatively the \a format parameter can specify one of the
      * following strings.
      *
      * <table align="center" border="1" cellpadding="2" cellspacing="0" bordercolor="#84b0c7">
@@ -93,7 +88,7 @@ public:
      * <td> uses the format HH:mm:ss.zzz </td>
      * </tr><tr bgcolor="#ffffff">
      * <td> DATE </td>
-     * <td> uses the format dd MMM YYYY HH:mm:ss.zzzz </td>
+     * <td> uses the format dd MMM YYYY HH:mm:ss.zzz </td>
      * </tr><tr>
      * <td> ISO8601 </td>
      * <td> uses the format yyyy-MM-dd hh:mm:ss.zzz </td>
@@ -106,9 +101,9 @@ public:
      * </tr>
      * </table>
      *
-     * \sa QDateTime::toString(const QString &rFormat)
+     * \sa QDateTime::toString(const QString &format)
      */
-    QString toString(const QString &rFormat) const;
+    QString toString(const QString &format) const;
 
     /*!
      * Returns the current datetime, as reported by the system clock, in
@@ -121,24 +116,21 @@ public:
     static DateTime fromMSecsSinceEpoch(qint64 msecs);
 
 private:
-    QString formatDateTime(const QString &rFormat) const;
+    QString formatDateTime(const QString &format) const;
 };
 
-inline DateTime::DateTime() : QDateTime()
+inline DateTime::DateTime(const QDateTime &other) : QDateTime(other)
 {}
 
-inline DateTime::DateTime(const QDateTime &rOther) : QDateTime(rOther)
-{}
-
-inline DateTime::DateTime(const QDate &rDate,
-                          const QTime &rTime,
+inline DateTime::DateTime(QDate date,
+                          QTime time,
                           Qt::TimeSpec timeSpec) :
-    QDateTime(rDate, rTime, timeSpec)
+    QDateTime(date, time, timeSpec)
 {}
 
-inline DateTime &DateTime::operator=(const DateTime &rOther)
+inline DateTime &DateTime::operator=(const DateTime &other)
 {
-    QDateTime::operator=(rOther);
+    QDateTime::operator=(other);
     return *this;
 }
 
@@ -155,7 +147,6 @@ inline DateTime DateTime::fromMSecsSinceEpoch(qint64 msecs)
 inline DateTime DateTime::fromMSecsSinceEpoch(qint64 msecs, Qt::TimeSpec spec, int offsetSeconds)
 {
     return DateTime(QDateTime::fromMSecsSinceEpoch(msecs, spec, offsetSeconds));
-
 }
 
 } // namespace Log4Qt

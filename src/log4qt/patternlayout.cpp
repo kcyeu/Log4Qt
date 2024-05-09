@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        patternlayout.cpp
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,70 +27,52 @@ namespace Log4Qt
 {
 
 
-PatternLayout::PatternLayout(QObject *pParent) :
-    Layout(pParent),
-    mPattern(),
-    mpPatternFormatter(nullptr)
+PatternLayout::PatternLayout(QObject *parent) :
+    Layout(parent)
 {
     setConversionPattern(DEFAULT_CONVERSION_PATTERN);
 }
 
-
-PatternLayout::PatternLayout(const QString &rPattern,
-                             QObject *pParent) :
-    Layout(pParent),
-    mPattern(),
-    mpPatternFormatter(nullptr)
+PatternLayout::PatternLayout(const QString &pattern,
+                             QObject *parent) :
+    Layout(parent)
 {
-    setConversionPattern(rPattern);
+    setConversionPattern(pattern);
 }
 
-
 PatternLayout::PatternLayout(ConversionPattern conversionPattern,
-                             QObject *pParent) :
-    Layout(pParent),
-    mPattern(),
-    mpPatternFormatter(nullptr)
+                             QObject *parent) :
+    Layout(parent)
 {
     setConversionPattern(conversionPattern);
 }
-
-
-PatternLayout::~PatternLayout()
-{
-    delete mpPatternFormatter;
-}
-
 
 void PatternLayout::setConversionPattern(ConversionPattern conversionPattern)
 {
     switch (conversionPattern)
     {
     case DEFAULT_CONVERSION_PATTERN:
-        setConversionPattern(QLatin1String("%m%n"));
+        setConversionPattern(QStringLiteral("%m%n"));
         break;
     case TTCC_CONVERSION_PATTERN:
-        setConversionPattern(QLatin1String("%r [%t] %p %c %x - %m%n"));
+        setConversionPattern(QStringLiteral("%r [%t] %p %c %x - %m%n"));
         break;
     default:
-        Q_ASSERT_X(false, "PatternLayout::setConversionFormat", "Unkown ConversionFormat");
+        Q_ASSERT_X(false, "PatternLayout::setConversionFormat", "Unknown ConversionFormat");
         setConversionPattern(QString());
     }
 }
 
-
-QString PatternLayout::format(const LoggingEvent &rEvent)
+QString PatternLayout::format(const LoggingEvent &event)
 {
-    Q_ASSERT_X(mpPatternFormatter, "PatternLayout::format()", "mpPatternConverter must not be null");
+    Q_ASSERT_X(mPatternFormatter, "PatternLayout::format()", "mpPatternConverter must not be null");
 
-    return mpPatternFormatter->format(rEvent);
+    return mPatternFormatter->format(event);
 }
-
 
 void PatternLayout::updatePatternFormatter()
 {
-    delete mpPatternFormatter;
-    mpPatternFormatter = new PatternFormatter(mPattern);
+    mPatternFormatter.reset(new PatternFormatter(mPattern));
 }
 
 } // namespace Log4Qt

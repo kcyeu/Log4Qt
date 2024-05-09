@@ -1,20 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        logging.h
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * changes:     Sep 2008, Martin Heinrich:
- *              - Added a compile time version check for the Qt version
- *              Jan 2009, Martin Heinrich:
- *              - Updated documentation and version information for version 0.2
- *              Feb 2009, Martin Heinrich:
- *              - Updated version information for version 0.3
- *
- *
- * Copyright 2007 - 2009 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,7 +80,7 @@
  *     "ConfiguratorHelper::configureError()".
  *   - Watching for configuration file changes is a function performed
  *     centrally by the \ref Log4Qt::ConfiguratorHelper "ConfiguratorHelper".
- *     The class provides signals to notify on configuration change and errors.
+ *     The class provides Q_SIGNALS to notify on configuration change and errors.
  *   - The class \ref Log4Qt::PropertyConfigurator "PropertyConfigurator" was
  *     extended to be able to read configuration data from a QSettings object.
  *
@@ -126,6 +114,11 @@
  *   - The class will call  \ref Log4Qt::WriterAppender::handleIoErrors()
  *     "handleIoErrors()" after all I/O operations. Sub-classes should
  *     re-implement the function to handle errors.
+ *
+ * - \ref Log4Qt::RollingFileAppender "RollingFileAppender"*
+ *   - The class behaves different to the log4/log4cpp implementation
+ *     on application restart the existing log files are rolled if
+ *     appendFile is set to false to avoid data loss.
  *
  * The following classes have been added:
  *
@@ -311,7 +304,7 @@
  * not available and a QCoreApplication object is present, the application
  * settings are tested for a group \c Properties. If the group exists,
  * the package is configured with the setting using the
- * \ref Log4Qt::PropertyConfigurator::doConfigure(const QSettings &r, LoggerRepository *)
+ * \ref Log4Qt::PropertyConfigurator::doConfigure(const QSettings &properties, LoggerRepository *)
  * "PropertyConfiguratordoConfigure()". If neither a configuration file nor
  * configuration settings could be found, the current working directory is
  * searched for the file \c "log4qt.properties". If it is found, the package
@@ -466,14 +459,8 @@
 
 #include <qglobal.h>
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 6, 0)
-#   error "Log4Qt requires Qt version 5.6.0 or higher"
-#endif
-
-// Q_CC_GNU not defined correct in Qt5.3
-#if QT_VERSION <= QT_VERSION_CHECK(5, 4, 0)
-#undef Q_CC_GNU
-#define Q_CC_GNU (__GNUC__ * 100 + __GNUC_MINOR__)
+#if QT_VERSION < QT_VERSION_CHECK(5, 12, 0)
+#   error "Log4Qt requires Qt version 5.12.0 or higher"
 #endif
 
 #if (defined(Q_CC_MSVC) && _MSC_VER < 1900)
@@ -487,7 +474,6 @@
 #if (defined(Q_CC_CLANG) && Q_CC_CLANG < 303)
 #   error "Log4Qt requires at least clang version 3.3 or higher for used c++11 features"
 #endif
-
 
 /*
    LOG4QT_VERSION is (major << 16) + (minor << 8) + patch.

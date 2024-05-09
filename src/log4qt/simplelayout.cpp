@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        simplelayout.cpp
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,12 +25,12 @@
 namespace Log4Qt
 {
 
-QString SimpleLayout::format(const LoggingEvent &rEvent)
+QString SimpleLayout::format(const LoggingEvent &event)
 {
     if (mShowLevel)
-        return rEvent.level().toString() + QLatin1String(" - ") + rEvent.message() + Layout::endOfLine();
-    else
-        return rEvent.message() + Layout::endOfLine();
+        return event.level().toString() + QStringLiteral(" - ") + event.message() + Layout::endOfLine();
+
+    return event.message() + Layout::endOfLine();
 }
 
 

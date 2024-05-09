@@ -1,17 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        classlogger.h
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * changes:     Sep 2008, Martin Heinrich:
- *              - Replaced usage of q_atomic_test_and_set_ptr with
- *                QAtomicPointer
- *
- *
- * Copyright 2007 - 2008 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,9 +21,10 @@
 #ifndef LOG4QT_CLASSLOGGER_H
 #define LOG4QT_CLASSLOGGER_H
 
-#include <log4qt/log4qtshared.h>
+#include "log4qt/log4qtshared.h"
 
 #include <QAtomicPointer>
+
 class QObject;
 
 namespace Log4Qt
@@ -69,14 +61,12 @@ public:
      *
      * \sa LogManager::logger(const char *pName)
      */
-    Logger *logger(const QObject *pObject);
+    Logger *logger(const QObject *object);
 
 private:
-    mutable QAtomicPointer<Logger> mpLogger;
+    mutable QAtomicPointer<Logger> mLogger;
 };
 
 } // namespace Log4Qt
-
-// Q_DECLARE_TYPEinfo(Log4Qt::ClassLogger, Q_COMPLEX_TYPE); // Use default
 
 #endif // LOG4QT_CLASSLOGGER_H

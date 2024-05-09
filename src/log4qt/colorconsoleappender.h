@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     log4qt
- * file:        colorconsoleappender.h
- * created:     March 2010
- * author:      Filonenko Michael
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2010 Filonenko Michael
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +24,7 @@
 #include "consoleappender.h"
 
 // if we are in WIN*
-#if defined(__WIN32__) || defined(WIN) || defined(WIN32) || defined(Q_OS_WIN32)
+#ifdef Q_OS_WIN
 #define WIN32_LEAN_AND_MEAN
 #define NOGDI
 #include <windows.h>
@@ -53,34 +49,34 @@ class LOG4QT_EXPORT ColorConsoleAppender : public ConsoleAppender
     Q_OBJECT
 
 public:
-
-    ColorConsoleAppender(QObject *pParent = nullptr);
-    ColorConsoleAppender(LayoutSharedPtr pLayout,
-                         QObject *pParent = nullptr);
-    ColorConsoleAppender(LayoutSharedPtr pLayout,
-                         const QString &rTarget,
-                         QObject *pParent = nullptr);
-
+    ColorConsoleAppender(QObject *parent = nullptr);
+    ColorConsoleAppender(const LayoutSharedPtr &layout,
+                         QObject *parent = nullptr);
+    ColorConsoleAppender(const LayoutSharedPtr &layout,
+                         const QString &target,
+                         QObject *parent = nullptr);
     /*!
      * Creates a ConsoleAppender with the layout \a pLayout, the target
      * value specified by the \a target constant and the parent
-     * \a pParent.
+     * \a parent.
      */
-    ColorConsoleAppender(LayoutSharedPtr pLayout,
+    ColorConsoleAppender(const LayoutSharedPtr &layout,
                          Target target,
-                         QObject *pParent = nullptr);
+                         QObject *parent = nullptr);
+
+    ~ColorConsoleAppender() override;
     // if we are in WIN*
-#if defined(__WIN32__) || defined(WIN) || defined(WIN32) || defined(Q_OS_WIN32)
+#ifdef Q_OS_WIN
+    void activateOptions() override;
+    void close() override;
 
-    virtual void activateOptions() override;
-
-    virtual void close() override;
 protected:
-    virtual void append(const LoggingEvent &rEvent) override;
+    void append(const LoggingEvent &event) override;
+
 private:
     HANDLE hConsole;
 #endif
-
+    void closeInternal();
 };
 
 

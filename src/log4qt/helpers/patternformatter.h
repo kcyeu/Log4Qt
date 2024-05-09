@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        patternformatter.h
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +21,8 @@
 #ifndef LOG4QT_PATTERNFORMATTER_H
 #define LOG4QT_PATTERNFORMATTER_H
 
-#include <log4qt/log4qtshared.h>
+#include "log4qt/log4qtdefs.h"
+#include "log4qt/log4qtshared.h"
 
 #include <QList>
 #include <QString>
@@ -52,13 +49,13 @@ class LoggingEvent;
  * \sa PatternLayout::format()
  * \sa TTCCLayout::format()
  */
-class  LOG4QT_EXPORT PatternFormatter
+class LOG4QT_EXPORT PatternFormatter
 {
 public:
     /*!
-     * Creates a PatternFormatter using a the specified \a rPattern.
+     * Creates a PatternFormatter using a the specified \a pattern.
      */
-    PatternFormatter(const QString &rPattern);
+    explicit PatternFormatter(const QString &pattern);
 
     /*!
      * Destroys the PatternFormatter and all PatternConverter.
@@ -66,50 +63,50 @@ public:
     virtual ~PatternFormatter();
 
 private:
-    Q_DISABLE_COPY(PatternFormatter)
+    Q_DISABLE_COPY_MOVE(PatternFormatter)
 
 public:
     /*!
-     * Formats the given \a rLoggingEvent using the chain of
+     * Formats the given \a loggingEvent using the chain of
      * PatternConverter created during construction from the specified
      * pattern.
      */
-    QString format(const LoggingEvent &rLoggingEvent) const;
+    QString format(const LoggingEvent &loggingEvent) const;
 
 private:
     /*!
-     * If the character \a rDigit is a digit the digit is added to the
-     * integer \a rValue and the function returns true. Otherwise the
+     * If the character \a digit is a digit the digit is added to the
+     * integer \a value and the function returns true. Otherwise the
      * function returns false.
      *
      * The function adds the digit by multiplying the existing value
      * with ten and adding the numerical value of the digit. If the
      * maximum integer value would be exceeded by the operation
-     * \a rValue is set to INT_MAX.
+     * \a value is set to INT_MAX.
      */
-    bool addDigit(const QChar &rDigit,
-                  int &rValue);
+    bool addDigit(QChar digit,
+                  int &value);
 
     /*!
      * Creates a PatternConverter based on the specified conversion
      * character \a rChar, the formatting information
-     * \a rFormattingInfo and the option \a rOption.
+     * \a formattingInfo and the option \a option.
      *
      * The PatternConverter converter is appended to the list of
      * PatternConverters.
      */
-    void createConverter(const QChar &rChar,
-                         const FormattingInfo &rFormattingInfo,
-                         const QString &rOption = QString());
+    void createConverter(QChar character,
+                         Log4Qt::FormattingInfo formattingInfo,
+                         const QString &option = QString());
 
     /*!
      * Creates a LiteralPatternConverter with the string literal
-     * \a rLiteral.
+     * \a literal.
      *
      * The PatternConverter converter is appended to the list of
      * PatternConverters.
      */
-    void createLiteralConverter(const QString &rLiteral);
+    void createLiteralConverter(const QString &literal);
 
     /*!
      * Parses the pattern string specified on construction and creates
@@ -123,7 +120,7 @@ private:
      * is returned. Returns the end of line seperator for the operating
      * system.
      */
-    int parseIntegerOption(const QString &rOption);
+    int parseIntegeoption(const QString &option);
 
 private:
     const QString mIgnoreCharacters;
@@ -137,7 +134,7 @@ private:
 } // namespace Log4Qt
 
 
-Q_DECLARE_TYPEINFO(Log4Qt::PatternFormatter, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(Log4Qt::PatternFormatter, Q_COMPLEX_TYPE);
 
 
 #endif // LOG4QT_PATTERNFORMATTER_H

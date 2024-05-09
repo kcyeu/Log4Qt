@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        loggerrepository.cpp
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +18,14 @@
  *
  ******************************************************************************/
 
-
 #include "loggerrepository.h"
 
 
 namespace Log4Qt
 {
 
-LoggerRepository::~LoggerRepository() {}
+LoggerRepository::LoggerRepository() = default;
+
+LoggerRepository::~LoggerRepository() = default;
 
 }  // namespace Log4Qt

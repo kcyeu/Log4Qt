@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        filter.h
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +21,8 @@
 #ifndef LOG4QT_FILTER_H
 #define LOG4QT_FILTER_H
 
-#include <log4qt/log4qt.h>
-#include <log4qt/log4qtsharedptr.h>
+#include "log4qt/log4qt.h"
+#include "log4qt/log4qtsharedptr.h"
 
 #include <QObject>
 
@@ -44,7 +40,7 @@ using FilterSharedPtr = Log4QtSharedPtr<Filter>;
  * \note The ownership and lifetime of objects of this class are managed.
  *       See \ref Ownership "Object ownership" for more details.
  */
-class  LOG4QT_EXPORT Filter : public QObject
+class LOG4QT_EXPORT Filter : public QObject
 {
     Q_OBJECT
 
@@ -53,6 +49,8 @@ class  LOG4QT_EXPORT Filter : public QObject
      *
      * The default is 0 for no next filter.
      *
+     *
+     *
      * \sa next(), setNext()
      */
     Q_PROPERTY(FilterSharedPtr next READ next WRITE setNext)
@@ -60,24 +58,27 @@ class  LOG4QT_EXPORT Filter : public QObject
 public:
     enum Decision
     {
-        ACCEPT,
-        DENY,
-        NEUTRAL
+        ACCEPT, /*!< The log event must be logged immediately without consulting
+                     with the remaining filters, if any, in the chain. */
+        DENY, /*!< The log event must be dropped immediately without consulting
+                   with the remaining filters, if any, in the chain. */
+        NEUTRAL /*!< This filter is neutral with respect to the log event. The
+                   remaining filters, if any, should be consulted for a final decision. */
     };
     Q_ENUM(Decision)
 
 public:
-    Filter(QObject *pParent = nullptr);
+    Filter(QObject *parent = nullptr);
     virtual ~Filter();
 
     FilterSharedPtr next() const;
-    void setNext(FilterSharedPtr pFilter);
+    void setNext(const FilterSharedPtr &filter);
 
     virtual void activateOptions();
-    virtual Decision decide(const LoggingEvent &rEvent) const = 0;
+    virtual Decision decide(const LoggingEvent &event) const = 0;
 
 private:
-    FilterSharedPtr mpNext;
+    FilterSharedPtr mNext;
 };
 
 

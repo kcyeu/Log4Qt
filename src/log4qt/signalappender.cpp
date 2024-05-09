@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        signalappender.cpp
- * created:     March 2010
- * author:      Filonenko Michael
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2010 Filonenko Michael
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,15 +25,16 @@
 
 namespace Log4Qt
 {
+
 SignalAppender::SignalAppender(QObject *parent) :
     AppenderSkeleton(parent)
 {
 }
 
-void SignalAppender::append(const LoggingEvent &rEvent)
+void SignalAppender::append(const LoggingEvent &event)
 {
-    QString message(layout()->format(rEvent));
-    emit appended(message);
+    QString message(layout()->format(event));
+    Q_EMIT appended(message);
 }
 
 }

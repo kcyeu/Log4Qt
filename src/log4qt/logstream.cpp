@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        logstream.h
- * created:     March, 2011
- * author:      Tim Besard
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2011 Tim Besard
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +30,11 @@ LogStream::LogStream(const Logger &iLogger, Level iLevel)
 }
 
 LogStream::Stream::Stream(const Logger *iLogger, Level iLevel)
+#if QT_VERSION < 0x060000
     : ts(&buffer, QIODevice::WriteOnly)
+#else
+    : ts(&buffer, QIODeviceBase::WriteOnly)
+#endif
     , mLogger(iLogger)
     , mLevel(iLevel)
 {

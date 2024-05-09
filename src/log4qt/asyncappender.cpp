@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        asyncappender.cpp
- * created:     February 2011
- * author:      Andreas Bacher
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2011 Andreas Bacher
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,14 +30,14 @@ namespace Log4Qt
 {
 
 AsyncAppender::AsyncAppender(QObject *parent) : AppenderSkeleton(parent)
-    , mpThread(nullptr)
-    , mpDispatcher(nullptr)
+    , mThread(nullptr)
+    , mDispatcher(nullptr)
 {
 }
 
 AsyncAppender::~AsyncAppender()
 {
-    close();
+    closeInternal();
 }
 
 bool AsyncAppender::requiresLayout() const
@@ -51,52 +47,61 @@ bool AsyncAppender::requiresLayout() const
 
 void AsyncAppender::activateOptions()
 {
-    if (mpThread)
+    if (mThread != nullptr)
         return;
 
-    mpThread = new QThread();
-    mpDispatcher = new Dispatcher();
-    mpDispatcher->setAsyncAppender(this);
+    mThread = new QThread();
+    mDispatcher = new Dispatcher();
+    mDispatcher->setAsyncAppender(this);
 
-    mpDispatcher->moveToThread(mpThread);
-    mpThread->start();
+    mDispatcher->moveToThread(mThread);
+    mThread->start();
 }
 
 void AsyncAppender::close()
 {
-    if (mpThread)
+    closeInternal();
+    AppenderSkeleton::close();
+}
+
+void AsyncAppender::closeInternal()
+{
+    QMutexLocker locker(&mObjectGuard);
+
+    if (isClosed())
+        return;
+
+    if (mThread != nullptr)
     {
-        mpDispatcher->setAsyncAppender(nullptr);
-        mpThread->quit();
-        mpThread->wait();
-        delete mpThread;
-        mpThread = nullptr;
-        delete mpDispatcher;
-        mpDispatcher = nullptr;
+        mDispatcher->setAsyncAppender(nullptr);
+        mThread->quit();
+        mThread->wait();
+        delete mThread;
+        mThread = nullptr;
+        delete mDispatcher;
+        mDispatcher = nullptr;
     }
 }
 
-void AsyncAppender::callAppenders(const LoggingEvent &rEvent) const
+void AsyncAppender::callAppenders(const LoggingEvent &event) const
 {
     QReadLocker locker(&mAppenderGuard);
 
-    for (auto pAppender : mAppenders)
-        pAppender->doAppend(rEvent);
+    for (auto &&pAppender : qAsConst(mAppenders))
+        pAppender->doAppend(event);
 }
 
-void AsyncAppender::append(const LoggingEvent &rEvent)
+void AsyncAppender::append(const LoggingEvent &event)
 {
     // Post to the event loop of the dispatcher
-    LoggingEvent *event = new LoggingEvent(rEvent);
-    qApp->postEvent(mpDispatcher, event);
+    qApp->postEvent(mDispatcher, new LoggingEvent(event));
 }
 
 bool AsyncAppender::checkEntryConditions() const
 {
-    if (mpThread && !mpThread->isRunning())
+    if ((mThread != nullptr) && !mThread->isRunning())
     {
-        LogError
-        e =
+        LogError e =
             LOG4QT_QCLASS_ERROR(QT_TR_NOOP("Use of appender '%1' without a running dispatcher thread"),
                                 APPENDER_ASNC_DISPATCHER_NOT_RUNNING);
         e << name();

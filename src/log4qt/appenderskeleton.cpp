@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:
- * file:        appenderskeleton.cpp
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,31 +38,32 @@ namespace Log4Qt
 class RecursionGuardLocker
 {
 public:
-    RecursionGuardLocker(bool *pGuard);
+    explicit RecursionGuardLocker(bool *guard);
     ~RecursionGuardLocker();
 private:
-    Q_DISABLE_COPY(RecursionGuardLocker)
+    Q_DISABLE_COPY_MOVE(RecursionGuardLocker)
 private:
-    bool *mpGuard;
+    bool *mGuard;
 };
 
-inline RecursionGuardLocker::RecursionGuardLocker(bool *pGuard)
+inline RecursionGuardLocker::RecursionGuardLocker(bool *guard)
 {
-    Q_ASSERT_X(pGuard != nullptr, "RecursionGuardLocker::RecursionGuardLocker()", "Pointer to guard bool must not be null");
+    Q_ASSERT_X(guard != nullptr, "RecursionGuardLocker::RecursionGuardLocker()", "Pointer to guard bool must not be null");
 
-    mpGuard = pGuard;
-    *mpGuard = true;
+    mGuard = guard;
+    *mGuard = true;
 }
-
 
 inline RecursionGuardLocker::~RecursionGuardLocker()
 {
-    *mpGuard = false;
+    *mGuard = false;
 }
 
-AppenderSkeleton::AppenderSkeleton(QObject *pParent) :
-    Appender(pParent),
+AppenderSkeleton::AppenderSkeleton(QObject *parent) :
+    Appender(parent),
+#if QT_VERSION < 0x050E00
     mObjectGuard(QMutex::Recursive), // Recursive for doAppend()
+#endif
     mAppendRecursionGuard(false),
     mIsActive(true),
     mIsClosed(false),
@@ -74,11 +71,12 @@ AppenderSkeleton::AppenderSkeleton(QObject *pParent) :
 {
 }
 
-
-AppenderSkeleton::AppenderSkeleton(const bool isActive,
-                                   QObject *pParent) :
-    Appender(pParent),
+AppenderSkeleton::AppenderSkeleton(bool isActive,
+                                   QObject *parent) :
+    Appender(parent),
+#if QT_VERSION < 0x050E00
     mObjectGuard(QMutex::Recursive), // Recursive for doAppend()
+#endif
     mAppendRecursionGuard(false),
     mIsActive(isActive),
     mIsClosed(false),
@@ -86,8 +84,24 @@ AppenderSkeleton::AppenderSkeleton(const bool isActive,
 {
 }
 
+AppenderSkeleton::AppenderSkeleton(bool isActive,
+                                   const LayoutSharedPtr &layout,
+                                   QObject *parent) :
+    Appender(parent),
+#if QT_VERSION < 0x050E00
+    mObjectGuard(QMutex::Recursive), // Recursive for doAppend()
+#endif
+    mAppendRecursionGuard(false),
+    mIsActive(isActive),
+    mIsClosed(false),
+    mpLayout(layout),
+    mThreshold(Level::NULL_INT)
+{
+}
+
 AppenderSkeleton::~AppenderSkeleton()
 {
+    closeInternal();
 }
 
 void AppenderSkeleton::activateOptions()
@@ -105,12 +119,11 @@ void AppenderSkeleton::activateOptions()
     mIsActive = true;
 }
 
-
-void AppenderSkeleton::addFilter(FilterSharedPtr pFilter)
+void AppenderSkeleton::addFilter(const FilterSharedPtr &filter)
 {
-    if (!pFilter)
+    if (!filter)
     {
-        logger()->warn("Adding null Filter to Appender '%1'", name());
+        logger()->warn(QStringLiteral("Adding null Filter to Appender '%1'"), name());
         return;
     }
 
@@ -119,17 +132,16 @@ void AppenderSkeleton::addFilter(FilterSharedPtr pFilter)
     if (!mpTailFilter)
     {
         // filter list empty
-        mpHeadFilter = pFilter;
-        mpTailFilter = pFilter;
+        mpHeadFilter = filter;
+        mpTailFilter = filter;
     }
     else
     {
         // append filter to the end of the filter list
-        mpTailFilter->setNext(pFilter);
-        mpTailFilter = pFilter;
+        mpTailFilter->setNext(filter);
+        mpTailFilter = filter;
     }
 }
-
 
 void AppenderSkeleton::clearFilters()
 {
@@ -138,8 +150,12 @@ void AppenderSkeleton::clearFilters()
     mpHeadFilter.reset();
 }
 
-
 void AppenderSkeleton::close()
+{
+    closeInternal();
+}
+
+void AppenderSkeleton::closeInternal()
 {
     QMutexLocker locker(&mObjectGuard);
 
@@ -151,14 +167,14 @@ void AppenderSkeleton::customEvent(QEvent *event)
 {
     if (event->type() == LoggingEvent::eventId)
     {
-        LoggingEvent *logEvent = static_cast<LoggingEvent *>(event);
+        auto logEvent = static_cast<LoggingEvent *>(event);
         doAppend(*logEvent);
         return ;
     }
     QObject::customEvent(event);
 }
 
-void AppenderSkeleton::doAppend(const LoggingEvent &rEvent)
+void AppenderSkeleton::doAppend(const LoggingEvent &event)
 {
     // The mutex serialises concurrent access from multiple threads.
     // - e.g. two threads using the same logger
@@ -178,24 +194,23 @@ void AppenderSkeleton::doAppend(const LoggingEvent &rEvent)
 
     if (!checkEntryConditions())
         return;
-    if (!isAsSevereAsThreshold(rEvent.level()))
+    if (!isAsSevereAsThreshold(event.level()))
         return;
 
-    Filter  *p_filter = mpHeadFilter.data();
-    while (p_filter)
+    Filter  *filter = mpHeadFilter.data();
+    while (filter)
     {
-        Filter::Decision decision = p_filter->decide(rEvent);
+        Filter::Decision decision = filter->decide(event);
         if (decision == Filter::ACCEPT)
             break;
         else if (decision == Filter::DENY)
             return;
         else
-            p_filter = p_filter->next().data();
+            filter = filter->next().data();
     }
 
-    append(rEvent);
+    append(event);
 }
-
 
 bool AppenderSkeleton::checkEntryConditions() const
 {
@@ -227,10 +242,10 @@ bool AppenderSkeleton::checkEntryConditions() const
     return true;
 }
 
-void Log4Qt::AppenderSkeleton::setLayout(LayoutSharedPtr pLayout)
+void Log4Qt::AppenderSkeleton::setLayout(const LayoutSharedPtr &layout)
 {
     QMutexLocker locker(&mObjectGuard);
-    mpLayout = pLayout;
+    mpLayout = layout;
 }
 
 LayoutSharedPtr Log4Qt::AppenderSkeleton::layout() const

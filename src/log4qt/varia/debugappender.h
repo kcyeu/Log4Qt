@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        debugappender.h
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +21,7 @@
 #ifndef LOG4QT_DEBUGAPPENDER_H
 #define LOG4QT_DEBUGAPPENDER_H
 
-#include <log4qt/appenderskeleton.h>
+#include "log4qt/appenderskeleton.h"
 
 namespace Log4Qt
 {
@@ -42,7 +38,7 @@ namespace Log4Qt
  * \note The ownership and lifetime of objects of this class are managed.
  *       See \ref Ownership "Object ownership" for more details.
  */
-class  LOG4QT_EXPORT DebugAppender : public AppenderSkeleton
+class LOG4QT_EXPORT DebugAppender : public AppenderSkeleton
 {
     Q_OBJECT
 
@@ -50,16 +46,16 @@ public:
     /*!
      * Creates a DebugAppender.
      */
-    DebugAppender(QObject *pParent = nullptr);
+    DebugAppender(QObject *parent = nullptr);
 
     /*!
      * Creates a DebugAppender with the specified layout \a pLayout
      */
-    DebugAppender(LayoutSharedPtr pLayout,
-                  QObject *pParent = nullptr);
+    DebugAppender(const LayoutSharedPtr &layout,
+                  QObject *parent = nullptr);
 
 private:
-    Q_DISABLE_COPY(DebugAppender)
+    Q_DISABLE_COPY_MOVE(DebugAppender)
 
 public:
     /*!
@@ -67,11 +63,11 @@ public:
      *
      * \sa setLayout()
      */
-    virtual bool requiresLayout() const override;
+    bool requiresLayout() const override;
 
 protected:
     /*!
-     * Appends the specified logging event \a rEvent to the debug output.
+     * Appends the specified logging event \a event to the debug output.
      * The output is formatted using the appender's layout.
      *
      * The method is called by the AppenderSkeleton::doAppend() after it
@@ -80,12 +76,12 @@ protected:
      *
      * \sa setLayout(), AppenderSkeleton::doAppend(), checkEntryConditions()
      */
-    virtual void append(const LoggingEvent &rEvent) override;
+    void append(const LoggingEvent &event) override;
 
 };
 
-inline DebugAppender::DebugAppender(QObject *pParent) :
-    AppenderSkeleton(pParent)
+inline DebugAppender::DebugAppender(QObject *parent) :
+    AppenderSkeleton(parent)
 {}
 
 

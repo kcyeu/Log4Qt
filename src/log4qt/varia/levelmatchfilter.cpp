@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        levelmatchfilter.cpp
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,23 +25,21 @@
 namespace Log4Qt
 {
 
-LevelMatchFilter::LevelMatchFilter(QObject *pParent) :
-    Filter(pParent),
+LevelMatchFilter::LevelMatchFilter(QObject *parent) :
+    Filter(parent),
     mAcceptOnMatch(true),
     mLevelToMatch(Level::NULL_INT)
 {}
 
-
-Filter::Decision LevelMatchFilter::decide(const LoggingEvent &rEvent) const
+Filter::Decision LevelMatchFilter::decide(const LoggingEvent &event) const
 {
     if (mLevelToMatch == Level::NULL_INT ||
-            rEvent.level() != mLevelToMatch)
+            event.level() != mLevelToMatch)
         return Filter::NEUTRAL;
 
     if (mAcceptOnMatch)
         return Filter::ACCEPT;
-    else
-        return Filter::DENY;
+    return Filter::DENY;
 }
 
 } // namespace Log4Qt

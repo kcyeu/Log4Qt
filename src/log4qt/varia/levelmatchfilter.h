@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        levelmatchfilter.h
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +21,8 @@
 #ifndef LOG4QT_LEVELMATCHFILTER_H
 #define LOG4QT_LEVELMATCHFILTER_H
 
-#include <log4qt/spi/filter.h>
-#include <log4qt/level.h>
+#include "log4qt/spi/filter.h"
+#include "log4qt/level.h"
 
 namespace Log4Qt
 {
@@ -38,7 +34,7 @@ namespace Log4Qt
  * \note The ownership and lifetime of objects of this class are managed.
  *       See \ref Ownership "Object ownership" for more details.
  */
-class LOG4QT_EXPORT  LevelMatchFilter : public Filter
+class LOG4QT_EXPORT LevelMatchFilter : public Filter
 {
     Q_OBJECT
 
@@ -61,14 +57,14 @@ class LOG4QT_EXPORT  LevelMatchFilter : public Filter
     Q_PROPERTY(Log4Qt::Level levelToMatch READ levelToMatch WRITE setLevelToMatch)
 
 public:
-    LevelMatchFilter(QObject *pParent = nullptr);
+    LevelMatchFilter(QObject *parent = nullptr);
 
     bool acceptOnMatch() const;
     Level levelToMatch() const;
     void setAcceptOnMatch(bool accept);
     void setLevelToMatch(Level level);
 
-    virtual Decision decide(const LoggingEvent &rEvent) const override;
+    Decision decide(const LoggingEvent &event) const override;
 
 private:
     bool mAcceptOnMatch;

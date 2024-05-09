@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Logging
- * file:        propertyconfigurator.h
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,92 +43,92 @@ class LoggerRepository;
  *
  * \note All the functions declared in this class are thread-safe.
  */
-class  LOG4QT_EXPORT PropertyConfigurator
+class LOG4QT_EXPORT PropertyConfigurator
 {
 public:
     PropertyConfigurator();
 
 private:
-    Q_DISABLE_COPY(PropertyConfigurator)
+    Q_DISABLE_COPY_MOVE(PropertyConfigurator)
 
 public:
     /*!
      * \sa ConfiguratorHelper::configureError()
      */
-    bool doConfigure(const Properties &rProperties,
-                     LoggerRepository *pLoggerRepository = nullptr);
+    bool doConfigure(const Properties &properties,
+                     LoggerRepository *loggerRepository = nullptr);
 
     /*!
      * \sa ConfiguratorHelper::configureError()
      */
-    bool doConfigure(const QString &rConfigFileName,
-                     LoggerRepository *pLoggerRepository = nullptr);
+    bool doConfigure(const QString &configFileName,
+                     LoggerRepository *loggerRepository = nullptr);
 
     /*!
      * Reads the configuration data from the QSettings object
-     * \a rSettings.
+     * \a settings.
      *
      * \sa \ref Properties::load(const QSettings &) "Properties::load()",
      *     ConfiguratorHelper::configureError()
      */
-    bool doConfigure(const QSettings &rSettings,
-                     LoggerRepository *pLoggerRepository = nullptr);
+    bool doConfigure(const QSettings &settings,
+                     LoggerRepository *loggerRepository = nullptr);
 
 
     /*!
      * \sa ConfiguratorHelper::configureError()
      */
-    static bool configure(const Properties &rProperties);
+    static bool configure(const Properties &properties);
 
     /*!
      * \sa ConfiguratorHelper::configureError()
      */
-    static bool configure(const QString &rConfigFilename);
+    static bool configure(const QString &configFilename);
 
     /*!
      * Reads the configuration data from the QSettings object
-     * \a rSettings.
+     * \a settings.
      *
      * \sa \ref doConfigure(const QSettings &, LoggerRepository *) "doConfigure()",
      *     \ref Properties::load(const QSettings &) "Properties::load()",
      *     ConfiguratorHelper::configureError()
      */
-    static bool configure(const QSettings &rSettings);
+    static bool configure(const QSettings &settings);
 
     /*!
      * \sa ConfiguratorHelper::configureError(),
      *     ConfiguratorHelper::configurationFile()
      */
-    static bool configureAndWatch(const QString &rConfigFilename);
+    static bool configureAndWatch(const QString &configFilename);
 
 private:
-    void configureFromFile(const QString &rConfigFileName,
-                           LoggerRepository *pLoggerRepository);
-    void configureFromProperties(const Properties &rProperties,
-                                 LoggerRepository *pLoggerRepository);
-    void configureFromSettings(const QSettings &rSettings,
-                               LoggerRepository *pLoggerRepository);
-    void configureGlobalSettings(const Properties &rProperties,
-                                 LoggerRepository *pLoggerRepository) const;
-    void configureNonRootElements(const Properties &rProperties,
-                                  LoggerRepository *pLoggerRepository);
-    void configureRootLogger(const Properties &rProperties,
-                             LoggerRepository *pLoggerRepository);
-    void parseAdditivityForLogger(const Properties &rProperties,
-                                  Logger *pLogger,
-                                  const QString &rLog4jName) const;
-    AppenderSharedPtr parseAppender(const Properties &rProperties,
-                                    const QString &rName);
-    LayoutSharedPtr parseLayout(const Properties &rProperties,
-                                const QString &rAppenderName);
-    void parseLogger(const Properties &rProperties,
-                     Logger *pLogger,
-                     const QString &rKey,
-                     const QString &rValue);
-    void setProperties(const Properties &rProperties,
-                       const QString &rPrefix,
-                       const QStringList &rExclusions,
-                       QObject *pObject);
+    void configureFromFile(const QString &configFileName,
+                           LoggerRepository *loggerRepository);
+    void configureFromProperties(const Properties &properties,
+                                 LoggerRepository *loggerRepository);
+    void configureFromSettings(const QSettings &settings,
+                               LoggerRepository *loggerRepository);
+    void configureGlobalSettings(const Properties &properties,
+                                 LoggerRepository *loggerRepository) const;
+    void configureNonRootElements(const Properties &properties,
+                                  LoggerRepository *loggerRepository);
+    void configureRootLogger(const Properties &properties,
+                             LoggerRepository *loggerRepository);
+    void parseAdditivityForLogger(const Properties &properties,
+                                  Logger *logger,
+                                  const QString &log4jName) const;
+    AppenderSharedPtr parseAppender(const Properties &properties,
+                                    const QString &name);
+    LayoutSharedPtr parseLayout(const Properties &properties,
+                                const QString &appendename);
+    void parseLogger(const Properties &properties,
+                     Logger *logger,
+                     const QString &key,
+                     const QString &value);
+    void setProperties(const Properties &properties,
+                       const QString &prefix,
+                       const QStringList &exclusion,
+                       QObject *object);
     void startCaptureErrors();
     bool stopCaptureErrors();
 

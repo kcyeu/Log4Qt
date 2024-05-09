@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        nullappender.h
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +21,7 @@
 #ifndef LOG4QT_NULLAPPENDER_H
 #define LOG4QT_NULLAPPENDER_H
 
-#include <log4qt/appenderskeleton.h>
+#include "log4qt/appenderskeleton.h"
 
 namespace Log4Qt
 {
@@ -38,21 +34,22 @@ namespace Log4Qt
  * \note The ownership and lifetime of objects of this class are managed. See
  *       \ref Ownership "Object ownership" for more details.
  */
-class  LOG4QT_EXPORT NullAppender : public AppenderSkeleton
+class LOG4QT_EXPORT NullAppender : public AppenderSkeleton
 {
     Q_OBJECT
 
 public:
-    NullAppender(QObject *pParent = nullptr);
-    virtual ~NullAppender();
-private:
-    Q_DISABLE_COPY(NullAppender)
+    NullAppender(QObject *parent = nullptr);
+    ~NullAppender() override;
 
 public:
-    virtual bool requiresLayout() const override;
+    bool requiresLayout() const override;
 
 protected:
-    virtual void append(const LoggingEvent &rEvent) override;
+    void append(const LoggingEvent &event) override;
+
+private:
+    Q_DISABLE_COPY_MOVE(NullAppender)
 };
 
 inline bool NullAppender::requiresLayout() const

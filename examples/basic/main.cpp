@@ -1,3 +1,23 @@
+/******************************************************************************
+ *
+ * This file is part of Log4Qt library.
+ *
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
+
 #include "log4qt/logger.h"
 
 #include "loggerobject.h"
@@ -28,8 +48,8 @@ int main(int argc, char *argv[])
 {
     QCoreApplication application(argc, argv);
 
-    LoggerObject *object = new LoggerObject(&application);
-    LoggerObjectPrio *object1 = new LoggerObjectPrio(&application);
+    auto *object = new LoggerObject(&application);
+    auto *object1 = new LoggerObjectPrio(&application);
     Q_UNUSED(object1)
     QLoggingCategory::setFilterRules("*.debug=false\n"
                                          "test.category1.debug=true");
@@ -43,7 +63,7 @@ int main(int argc, char *argv[])
     {
         QScopedPointer<LoggerStatic> object2(new LoggerStatic());
 
-        ret = application.exec();
+        ret = QCoreApplication::exec();
     }
 
     logShutdown();
@@ -54,48 +74,48 @@ int main(int argc, char *argv[])
 
 void initializeRootLogger()
 {
-    setupRootLogger("Root logger is setup.");
+    setupRootLogger(QStringLiteral("Root logger is setup."));
 }
 
 void shutdownRootLogger()
 {
-    shutDownRootLogger("Root logger was shutdown.");
+    shutDownRootLogger(QStringLiteral("Root logger was shutdown."));
 }
 
 void logStartup()
 {
     auto logger = Log4Qt::Logger::rootLogger();
 
-    logger->info("################################################################");
-    logger->info("#                          START                               #");
-    logger->info("################################################################");
+    logger->info(QStringLiteral("################################################################"));
+    logger->info(QStringLiteral("#                          START                               #"));
+    logger->info(QStringLiteral("################################################################"));
 }
 
 void logShutdown()
 {
     auto logger = Log4Qt::Logger::rootLogger();
 
-    logger->info("################################################################");
-    logger->info("#                          STOP                                #");
-    logger->info("################################################################");
+    logger->info(QStringLiteral("################################################################"));
+    logger->info(QStringLiteral("#                          STOP                                #"));
+    logger->info(QStringLiteral("################################################################"));
 }
 
 void setupRootLogger(const QString &introMessage)
 {
     // Create a layout
     auto logger = Log4Qt::Logger::rootLogger();
-    Log4Qt::TTCCLayout *layout = new Log4Qt::TTCCLayout();
-    layout->setName(QLatin1String("My Layout"));
+    auto *layout = new Log4Qt::TTCCLayout();
+    layout->setName(QStringLiteral("My Layout"));
     layout->activateOptions();
     // Create a console appender
     Log4Qt::ConsoleAppender *consoleAppender = new Log4Qt::ConsoleAppender(layout, Log4Qt::ConsoleAppender::STDOUT_TARGET);
-    consoleAppender->setName(QLatin1String("My Appender"));
+    consoleAppender->setName(QStringLiteral("My Appender"));
     consoleAppender->activateOptions();
     // Add appender on root logger
     logger->addAppender(consoleAppender);
     // Create a file appender
     Log4Qt::FileAppender *fileAppender = new Log4Qt::FileAppender(layout, QCoreApplication::applicationDirPath() + "/basic.log", true);
-    fileAppender->setName(QLatin1String("My file appender"));
+    fileAppender->setName(QStringLiteral("My file appender"));
     fileAppender->activateOptions();
     // Add appender on root logger
     logger->addAppender(fileAppender);

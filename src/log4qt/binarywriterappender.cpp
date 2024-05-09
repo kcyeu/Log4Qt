@@ -1,3 +1,23 @@
+/******************************************************************************
+ *
+ * This file is part of Log4Qt library.
+ *
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
+
 #include "binarywriterappender.h"
 #include "binaryloggingevent.h"
 #include "binarylayout.h"
@@ -6,31 +26,31 @@
 namespace Log4Qt
 {
 
-BinaryWriterAppender::BinaryWriterAppender(QObject *pParent) :
-    AppenderSkeleton(false, pParent),
-    mpWriter(nullptr)
+BinaryWriterAppender::BinaryWriterAppender(QObject *parent) :
+    AppenderSkeleton(false, parent),
+    mWriter(nullptr)
 {
 }
 
-BinaryWriterAppender::BinaryWriterAppender(QDataStream *pDataStream,
-        QObject *pParent) :
-    AppenderSkeleton(false, pParent),
-    mpWriter(pDataStream)
+BinaryWriterAppender::BinaryWriterAppender(QDataStream *dataStream,
+        QObject *parent) :
+    AppenderSkeleton(false, parent),
+    mWriter(dataStream)
 {
 }
 
 BinaryWriterAppender::~BinaryWriterAppender()
 {
-    close();
+    closeInternal();
 }
 
-void BinaryWriterAppender::setWriter(QDataStream *pDataStream)
+void BinaryWriterAppender::setWriter(QDataStream *dataStream)
 {
     QMutexLocker locker(&mObjectGuard);
 
     closeWriter();
 
-    mpWriter = pDataStream;
+    mWriter = dataStream;
     writeHeader();
 }
 
@@ -39,7 +59,7 @@ void BinaryWriterAppender::activateOptions()
 {
     QMutexLocker locker(&mObjectGuard);
 
-    if (!writer())
+    if (writer() == nullptr)
     {
         LogError e = LOG4QT_QCLASS_ERROR(QT_TR_NOOP("Activation of Appender '%1' that requires writer and has no writer set"),
                                          APPENDER_ACTIVATE_MISSING_WRITER_ERROR);
@@ -53,12 +73,17 @@ void BinaryWriterAppender::activateOptions()
 
 void BinaryWriterAppender::close()
 {
+    closeInternal();
+    AppenderSkeleton::close();
+}
+
+void BinaryWriterAppender::closeInternal()
+{
     QMutexLocker locker(&mObjectGuard);
 
     if (isClosed())
         return;
 
-    AppenderSkeleton::close();
     closeWriter();
 }
 
@@ -67,27 +92,27 @@ bool BinaryWriterAppender::requiresLayout() const
     return false;
 }
 
-void BinaryWriterAppender::append(const LoggingEvent &rEvent)
+void BinaryWriterAppender::append(const LoggingEvent &event)
 {
-    const BinaryLoggingEvent *binEvent = dynamic_cast<const BinaryLoggingEvent *>(&rEvent);
+    const auto *binEvent = dynamic_cast<const BinaryLoggingEvent *>(&event);
     const LayoutSharedPtr l = layout();
     const BinaryLayout *bl = qobject_cast<BinaryLayout *>(l.data());
 
-    if (binEvent)
+    if (binEvent != nullptr)
     {
         // handle binary events
-        if (bl)
-            *mpWriter << bl->binaryFormat(*binEvent);   // if it's a binary message and we have a binary layout output the binary message via the binary layout.
+        if (bl != nullptr)
+            *mWriter << bl->binaryFormat(*binEvent);   // if it's a binary message and we have a binary layout output the binary message via the binary layout.
         else
-            *mpWriter << binEvent->binaryMessage();     // binary message, but no layout or not a binary layout, output the binary message without the layout
+            *mWriter << binEvent->binaryMessage();     // binary message, but no layout or not a binary layout, output the binary message without the layout
     }
     else
     {
         // handle non binary events
-        if (l && !bl)
-            *mpWriter << l->format(rEvent); // if the message and the layout are not binary, output it as in WriterAppender
+        if ((l != nullptr) && (bl == nullptr))
+            *mWriter << l->format(event); // if the message and the layout are not binary, output it as in WriterAppender
         else
-            *mpWriter << rEvent.message();  // if the message is not binary and there is no layout or the layout is binary, output it without the layout
+            *mWriter << event.message();  // if the message is not binary and there is no layout or the layout is binary, output it without the layout
     }
 
     handleIoErrors();
@@ -95,7 +120,7 @@ void BinaryWriterAppender::append(const LoggingEvent &rEvent)
 
 bool BinaryWriterAppender::checkEntryConditions() const
 {
-    if (!writer())
+    if (mWriter == nullptr)
     {
         LogError e = LOG4QT_QCLASS_ERROR(QT_TR_NOOP("Use of appender '%1' without a writer set"),
                                          APPENDER_USE_MISSING_WRITER_ERROR);
@@ -110,11 +135,11 @@ bool BinaryWriterAppender::checkEntryConditions() const
 
 void BinaryWriterAppender::closeWriter()
 {
-    if (!mpWriter)
+    if (mWriter == nullptr)
         return;
 
     writeFooter();
-    mpWriter = nullptr;
+    mWriter = nullptr;
 }
 
 bool BinaryWriterAppender::handleIoErrors() const
@@ -124,13 +149,13 @@ bool BinaryWriterAppender::handleIoErrors() const
 
 void BinaryWriterAppender::writeHeader() const
 {
-    if (layout() && mpWriter)
+    if ((layout() != nullptr) && (mWriter != nullptr))
         writeRawData(binaryLayout()->binaryHeader());
 }
 
 void BinaryWriterAppender::writeFooter() const
 {
-    if (layout() && mpWriter)
+    if ((layout() != nullptr) && (mWriter != nullptr))
         writeRawData(binaryLayout()->binaryFooter());
 }
 
@@ -139,7 +164,7 @@ void BinaryWriterAppender::writeRawData(const QByteArray &data) const
     if (data.isEmpty())
         return;
 
-    mpWriter->writeRawData(data.constData(), data.size());
+    mWriter->writeRawData(data.constData(), data.size());
 
     if (handleIoErrors())
         return;

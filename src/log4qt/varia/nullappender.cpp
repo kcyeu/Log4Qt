@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        nullappender.cpp
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,8 +28,8 @@
 namespace Log4Qt
 {
 
-NullAppender::NullAppender(QObject *pParent) :
-    AppenderSkeleton(false, pParent)
+NullAppender::NullAppender(QObject *parent) :
+    AppenderSkeleton(false, parent)
 {
 }
 
@@ -42,9 +38,9 @@ NullAppender::~NullAppender()
     close();
 }
 
-void NullAppender::append(const LoggingEvent &rEvent)
+void NullAppender::append(const LoggingEvent &event)
 {
-    Q_UNUSED(rEvent);
+    Q_UNUSED(event);
 }
 
 } // namespace Log4Qt

@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:
- * file:        dailyfileappender.h
- * created:     Jaenner 2015
- * author:      Johann Anhofer
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2015 Johann Anhofer
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,44 +23,80 @@
 
 #include "fileappender.h"
 
-#include <QString>
 #include <QDate>
+#include <QFutureSynchronizer>
+#include <QSharedPointer>
+#include <QString>
 
 namespace Log4Qt
 {
+
+class LOG4QT_EXPORT IDateRetriever
+{
+public:
+    virtual ~IDateRetriever();
+    virtual QDate currentDate() const = 0;
+};
+
+class LOG4QT_EXPORT DefaultDateRetriever final : public IDateRetriever
+{
+public:
+
+    /**
+     * Return the current date, as reported by the system clock.
+     */
+    QDate currentDate() const override;
+};
 
 /*!
  * \brief The class DailyFileAppender extends FileAppender so that the
  * a log file is created for each day
  */
-class  LOG4QT_EXPORT DailyFileAppender : public FileAppender
+class LOG4QT_EXPORT DailyFileAppender : public FileAppender
 {
     Q_OBJECT
 
     //! The property holds the date pattern used by the appender.
     Q_PROPERTY(QString datePattern READ datePattern WRITE setDatePattern)
+
+    /**
+     * Number of days that old log files will be kept on disk.
+     * Set to a positive value to enable automatic deletion. Per default, all files are kept. Check
+     * for obsolete files happens once a day.
+     */
+    Q_PROPERTY(int keepDays READ keepDays WRITE setKeepDays)
+
 public:
-    explicit DailyFileAppender(QObject *pParent = nullptr);
-    DailyFileAppender(LayoutSharedPtr pLayout, const QString &rFileName, const QString &rDatePattern = QString(), QObject *pParent = nullptr);
-    virtual ~DailyFileAppender();
+    explicit DailyFileAppender(QObject *parent = nullptr);
+    DailyFileAppender(const LayoutSharedPtr &layout, const QString &fileName, const QString &datePattern = QString(), int keepDays = 0, QObject *parent = nullptr);
 
     QString datePattern() const;
-    void setDatePattern(const QString &rDatePattern);
+    void setDatePattern(const QString &datePattern);
 
-    virtual void activateOptions() override;
+    int keepDays() const;
+    void setKeepDays(int keepDays);
 
-    void setLogFileForCurrentDay();
+    void activateOptions() override;
 
-    virtual void append(const LoggingEvent &rEvent) override;
+    void append(const LoggingEvent &event) override;
+
+    void setDateRetriever(const QSharedPointer<const IDateRetriever> &dateRetriever);
 
 private:
-    Q_DISABLE_COPY(DailyFileAppender)
+    Q_DISABLE_COPY_MOVE(DailyFileAppender)
+
+    void setLogFileForCurrentDay();
     void rollOver();
     QString appendDateToFilename() const;
 
+    QSharedPointer<const IDateRetriever> mDateRetriever;
+
     QString mDatePattern;
     QDate mLastDate;
+    int mKeepDays;
     QString mOriginalFilename;
+
+    QFutureSynchronizer<void> mDeleteObsoleteFilesExecutors;
 };
 
 }

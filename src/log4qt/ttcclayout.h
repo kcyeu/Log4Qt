@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        ttcclayout.h
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +22,14 @@
 #define LOG4QT_TTCCLAYOUT_H
 
 #include "layout.h"
+#include "helpers/patternformatter.h"
+
+#include <QScopedPointer>
 
 namespace Log4Qt
 {
 
 class LoggingEvent;
-class PatternFormatter;
 
 /*!
  * \brief The class TTCCLayout outputs the time, thread, logger and nested
@@ -40,7 +38,7 @@ class PatternFormatter;
  * \note The ownership and lifetime of objects of this class are managed.
  *       See \ref Ownership "Object ownership" for more details.
  */
-class  LOG4QT_EXPORT TTCCLayout : public Layout
+class LOG4QT_EXPORT TTCCLayout : public Layout
 {
     Q_OBJECT
 
@@ -103,7 +101,7 @@ public:
         ABSOLUTE,
         /*!
          * The date date format string is "DATE". The date will be formatted
-         * as MMM YYYY HH:mm:ss.zzzz.
+         * as MMM YYYY HH:mm:ss.zzz.
          */
         DATE,
         /*!
@@ -114,20 +112,19 @@ public:
     };
     Q_ENUM(DateFormat)
 
-    TTCCLayout(QObject *pParent = nullptr);
-    TTCCLayout(const QString &rDateFormat,
-               QObject *pParent = nullptr);
+    TTCCLayout(QObject *parent = nullptr);
+    TTCCLayout(const QString &dateFormat,
+               QObject *parent = nullptr);
 
     /*!
      * Creates a TTCCLayout with the date formar value specified by
-     * the \a dateFormat constant and the parent \a pParent.
+     * the \a dateFormat constant and the parent \a parent.
      */
     TTCCLayout(DateFormat dateFormat,
-               QObject *pParent = nullptr);
+               QObject *parent = nullptr);
 
-    virtual ~TTCCLayout();
 private:
-    Q_DISABLE_COPY(TTCCLayout)
+    Q_DISABLE_COPY_MOVE(TTCCLayout)
 
 public:
     bool categoryPrefixing() const;
@@ -136,7 +133,7 @@ public:
     bool threadPrinting() const;
     void setCategoryPrefixing(bool categoryPrefixing);
     void setContextPrinting(bool contextPrinting);
-    void setDateFormat(const QString &rDateFormat);
+    void setDateFormat(const QString &dateFormat);
 
     /*!
     * Sets the date format to the value specified by the \a dateFormat
@@ -145,7 +142,7 @@ public:
     void setDateFormat(DateFormat dateFormat);
 
     void setThreadPrinting(bool threadPrinting);
-    virtual QString format(const LoggingEvent &rEvent) override;
+    virtual QString format(const LoggingEvent &event) override;
 
 private:
     void updatePatternFormatter();
@@ -155,7 +152,7 @@ private:
     bool mContextPrinting;
     QString mDateFormat;
     bool mThreadPrinting;
-    PatternFormatter *mpPatternFormatter;
+    QScopedPointer<PatternFormatter> mPatternFormatter;
 };
 
 inline bool TTCCLayout::categoryPrefixing() const
@@ -190,9 +187,9 @@ inline void TTCCLayout::setContextPrinting(bool contextPrinting)
     updatePatternFormatter();
 }
 
-inline void TTCCLayout::setDateFormat(const QString &rDateFormat)
+inline void TTCCLayout::setDateFormat(const QString &dateFormat)
 {
-    mDateFormat = rDateFormat;
+    mDateFormat = dateFormat;
     updatePatternFormatter();
 }
 

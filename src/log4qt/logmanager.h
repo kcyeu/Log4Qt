@@ -1,12 +1,8 @@
 /******************************************************************************
  *
- * package:     Log4Qt
- * file:        logmanager.h
- * created:     September 2007
- * author:      Martin Heinrich
+ * This file is part of Log4Qt library.
  *
- *
- * Copyright 2007 Martin Heinrich
+ * Copyright (C) 2007 - 2020 Log4Qt contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,8 +65,8 @@ class LOG4QT_EXPORT LogManager
 {
 private:
     LogManager();
-    virtual ~LogManager();
-    Q_DISABLE_COPY(LogManager)
+    ~LogManager();
+    Q_DISABLE_COPY_MOVE(LogManager)
 
 public:
     /*!
@@ -217,7 +213,7 @@ public:
      */
     static LogManager *instance();
 
-    static Logger *logger(const QString &rName);
+    static Logger *logger(const QString &name);
 
     /*!
      * Reset all values contained in logger repository to their default.
@@ -256,7 +252,7 @@ public:
      * present, the application settings are tested for a group
      * \c Properties. If the group exists, the package is configured
      * with the setting using the
-     * \ref PropertyConfigurator::doConfigure(const QSettings &r, LoggerRepository *)
+     * \ref PropertyConfigurator::doConfigure(const QSettings &properties, LoggerRepository *)
      * "PropertyConfiguratordoConfigure()". If neither a configuration
      * file nor configuration settings could be found, the current working
      * directory is searched for the file \c "log4qt.properties". If it is
@@ -291,20 +287,25 @@ private:
     void doStartup();
     void welcome();
 
-    static void qtMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &rMessage);
+    static void qtMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &message);
 
 private:
+#if QT_VERSION < 0x050E00
     mutable QMutex mObjectGuard;
-    LoggerRepository *mpLoggerRepository;
+#else
+    mutable QRecursiveMutex mObjectGuard;
+#endif
+
+    LoggerRepository *mLoggerRepository;
     bool mHandleQtMessages, mWatchThisFile;
     QString mFilterRules, mMessagePattern;
     QtMessageHandler mQtMsgHandler;
-    static LogManager *mspInstance;
+    static LogManager *mInstance;
 };
 
 inline LoggerRepository *LogManager::loggerRepository()
 {
-    return instance()->mpLoggerRepository;
+    return instance()->mLoggerRepository;
 }
 
 inline bool LogManager::handleQtMessages()
@@ -329,12 +330,12 @@ inline QString LogManager::messagePattern()
 
 inline Logger *LogManager::logLogger()
 {
-    return logger(QLatin1String("Log4Qt"));
+    return logger(QStringLiteral("Log4Qt"));
 }
 
 inline Logger *LogManager::qtLogger()
 {
-    return logger(QLatin1String("Qt"));
+    return logger(QStringLiteral("Qt"));
 }
 
 inline void LogManager::setHandleQtMessages(bool handleQtMessages)
